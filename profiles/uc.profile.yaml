@@ -86,6 +86,8 @@ self_check_output:
     - warnings
     - open_questions_after_check
     - checked_at
+    - reviewed_artifact
+    - reviewed_metadata
 
 # 门禁条件
 gate:

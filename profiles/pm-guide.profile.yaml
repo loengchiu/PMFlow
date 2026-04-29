@@ -66,19 +66,20 @@ required_status_fields:
   - open_questions
   - pm_confirmations
   - review_results
+  - next_allowed_commands
 
 # pm-guide 的判定优先级（从高到低）
 decision_priority:
-  1: review_results 中的 fail 阻断（最高优先）
-  2: pm_confirmations 中的未确认项
-  3: artifacts 中的空产出（技能未执行）
-  4: review_results 中的 warn（风险记录）
-  5: 已确认可推进的下一阶段（最低优先）
+  1: review_results 中的 fail 阻断（最高优先，必须先检查）
+  2: artifacts 中的空产出（技能未执行）
+  3: review_results 缺失（未完成自检或审查）
+  4: pm_confirmations 中的未确认项（推荐 /pm-confirm）
+  5: pm_confirmations 中已确认（推荐下一阶段命令）
 
 # pm-guide 禁止推荐跨越的阶段
 forbidden_skips:
   - uninitialized → uc（跳过 brd）
   - brd 未确认 → solution（跳过 uc）
   - uc 未确认 → solution（跳过确认）
-  - solution review 未 pass → prototype
-  - prototype review 未 pass → prd
+  - solution review fail 或未审查 → prototype
+  - prototype review fail 或未审查 → prd

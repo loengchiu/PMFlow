@@ -23,5 +23,5 @@ argument-hint: 可附带用户角色补充、场景材料或澄清说明
 
 - 不进入 solution / prototype / prd
 - 不自行新增用户角色（必须基于确认的 BRD）
-- 不在 PM 确认前提示下一阶段命令
+- 完成后只提示 /pm-confirm，不提示下一阶段命令
 - 不生成方案或原型

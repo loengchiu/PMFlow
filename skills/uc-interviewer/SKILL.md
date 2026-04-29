@@ -21,7 +21,7 @@
 
 读取 `.pmflow/status.yaml`，确认：
 
-- `current_stage` 为 `uc`
+- `current_stage` 为 `uc`；或者 `next_allowed_commands` 包含 `/pm-uc`（PM 确认后授权进入或回归补充）
 - `pm_confirmations` 中 brd 已确认（`confirmed: true`）
 - `review_results` 中 brd 自检不为 `fail`
 
@@ -113,6 +113,7 @@
 ### 5.3 更新状态
 
 更新 `.pmflow/status.yaml`：
+- `current_stage: uc`
 - `artifacts.uc` 追加新文件路径
 - 如有新的 open_questions，追加
 
@@ -151,7 +152,11 @@ fail_reasons: []
 warnings: []
 open_questions_after_check: []
 checked_at: ""
+reviewed_artifact: ""   # 必填：本次生成的人读产物路径（output/uc/uc-note-*.md），不得为空
+reviewed_metadata: ""   # 必填：本次生成的机读 metadata 路径（.pmflow/metadata/uc/uc-*.yaml），不得为空
 ```
+
+`reviewed_artifact` 必须等于本次生成的 `output/uc/uc-note-{timestamp}.md` 实际路径，`reviewed_metadata` 必须等于本次生成的 `.pmflow/metadata/uc/uc-{timestamp}.yaml` 实际路径。两者均不得使用空字符串或占位符落盘。
 
 同步更新 `.pmflow/status.yaml` 的 `review_results`。
 
@@ -174,13 +179,13 @@ UC 访谈完成。
 - .pmflow/metadata/uc/uc-*.yaml
 - .pmflow/reviews/uc-self-check-*.yaml
 
-需要 PM 确认：
+需要 PM 确认（请执行 /pm-confirm）：
 - 用户角色是否准确完整
 - 用户路径是否覆盖核心场景
 - 任务流是否正确
 - 未确认项是否可接受
 
-下一步唯一建议：{/pm-solution（pass 或 warn 经 PM 确认后）| /pm-uc（fail 时）}
+下一步唯一建议：{/pm-confirm（pass 或 warn 时）| /pm-uc（fail 时）}
 ```
 
 ### 7.2 禁止行为

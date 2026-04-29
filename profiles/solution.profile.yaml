@@ -122,8 +122,8 @@ gate:
   reviewer_blocking: true
   pm_override_allowed: false
   after_review:
-    pass: 等待 PM 确认后推荐 /pm-proto
-    warn: 提示 PM 风险，等待 PM 确认后决定
-    fail: PM 不可越权推进，只能回到 /pm-solution 修正
+    pass: 推荐 /pm-confirm，PM 确认后进入 /pm-proto
+    warn: 推荐 /pm-confirm，PM 知情确认后进入 /pm-proto 或回 /pm-solution
+    fail: 只能回到 /pm-solution 修正
   pm_confirmation_required: true
   confirmed_stage: solution

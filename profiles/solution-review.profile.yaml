@@ -76,13 +76,15 @@ outputs:
       - fail 项详情（具体问题、位置、修正建议）
       - warn 项说明（风险点）
       - 整体 verdict
-      - 下一步建议（pass→/pm-proto, warn→PM决策, fail→回到/pm-solution）
+      - 下一步建议（pass/warn→/pm-confirm, fail→/pm-solution）
   machine:
     path_pattern: .pmflow/reviews/solution-review-*.yaml
     required_fields:
       - stage
       - check_type
       - verdict
+      - reviewed_artifact
+      - reviewed_metadata
       - checks_detail（逐项 verdict、问题描述、修正建议）
       - fail_reasons
       - warnings
@@ -100,4 +102,5 @@ reviewer_constraints:
     - 复述 writer 的判断或措辞
     - 在未逐项检查的情况下给 pass
     - 用"整体完整，可以进入下一步"替代逐项判定
-    - 在 fail 时提示 /pm-proto
+    - 在 fail 时提示 /pm-confirm 或 /pm-proto
+    - 在 pass/warn 时提示 /pm-proto（只提示 /pm-confirm）

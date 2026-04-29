@@ -23,6 +23,12 @@ fields:
       - prd
     description: 当前所处阶段
 
+  next_allowed_commands:
+    type: array
+    required: false
+    items: string
+    description: PM 确认后允许的下一步命令列表（由 /pm-confirm 写入，/pm-guide 读取）
+
   artifacts:
     type: object
     required: true
@@ -138,6 +144,8 @@ fields:
         - check_type
         - verdict
         - checked_at
+        - reviewed_artifact
+        - reviewed_metadata
       properties:
         stage:
           type: enum
@@ -170,3 +178,9 @@ fields:
         reviewer:
           type: string
           description: 执行检查的 reviewer 标识（reviewer_check 时必填）
+        reviewed_artifact:
+          type: string
+          description: 被审查的人读产物路径（review_results 写入时必填）
+        reviewed_metadata:
+          type: string
+          description: 被审查的机读 metadata 路径（review_results 写入时必填）

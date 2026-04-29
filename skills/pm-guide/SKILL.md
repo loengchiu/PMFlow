@@ -5,6 +5,7 @@
 执行前必须读取：
 
 - `contracts/gates.md`（门禁定义）
+- `contracts/confirmation.md`（确认契约）
 - `schemas/status.schema.yaml`（状态 schema）
 
 **禁止**读取任何项目业务文件（文档、代码、配置）。
@@ -33,7 +34,18 @@
 
 ## 3. 状态判断逻辑
 
-按优先级依次判断：
+判定优先级（从高到低）：**fail > 未执行 > 未自检/review > 未确认 > 已确认可推进**。
+
+判断"pm_confirmations 中 X 已确认"时，必须同时满足以下条件，否则视为**未确认**：
+
+1. `pm_confirmations` 中存在对应 stage 且 `confirmed: true`
+2. 确认记录的 `artifact` 路径等于 `artifacts.<stage>` 中的**最新**产物路径（数组最后一条记录）
+3. `approved_baselines` 中存在对应 stage 且 `artifact_path` 等于最新产物路径
+
+条件 2 不满足 → 产物在确认后被重新生成，旧确认已失效。
+条件 3 不满足 → 基线记录缺失，确认链路不完整。
+
+以上任一不满足时，判定为"未确认"，推荐 `/pm-confirm`。满足全部条件时，判定为"已确认可推进"。
 
 ```
 读取 current_stage
@@ -42,65 +54,67 @@
   │     └─ 推荐 /pm-brd
   │
   ├── brd
-  │   ├── pm_confirmations 中无 brd 确认记录
-  │   │   ├── artifacts.brd 为空 → brd-interviewer 尚未执行或未产出
-  │   │   └── artifacts.brd 非空 → brd note 已产出，等待 PM 确认
-  │   ├── pm_confirmations 中 brd 已确认
-  │   │   └─ 推荐 /pm-uc
-  │   └── review_results 中 brd 自检 fail
-  │       └─ 推荐回到 /pm-brd（补充输入后重新执行）
+  │   ├── review_results 中 brd 自检为 fail
+  │   │   └─ 推荐回到 /pm-brd（fail 阻断，不可跳过）
+  │   ├── artifacts.brd 为空
+  │   │   └─ brd-interviewer 尚未执行，推荐 /pm-brd
+  │   ├── review_results 中无 brd 自检记录
+  │   │   └─ brd note 已产出但未自检，推荐 /pm-brd（重新执行含自检）
+  │   ├── pm_confirmations 中 brd 未确认
+  │   │   └─ 推荐 /pm-confirm
+  │   └── pm_confirmations 中 brd 已确认（且 artifact 与最新产物一致）
+  │       └─ 推荐 /pm-uc
   │
   ├── uc
-  │   ├── pm_confirmations 中无 uc 确认记录
-  │   │   ├── artifacts.uc 为空 → uc-interviewer 尚未执行
-  │   │   └── artifacts.uc 非空 → uc note 已产出，等待 PM 确认
-  │   ├── pm_confirmations 中 uc 已确认
-  │   │   └─ 推荐 /pm-solution
-  │   └── review_results 中 uc 自检 fail
-  │       └─ 推荐回到 /pm-uc（补充输入后重新执行）
+  │   ├── review_results 中 uc 自检为 fail
+  │   │   └─ 推荐回到 /pm-uc（fail 阻断，不可跳过）
+  │   ├── artifacts.uc 为空
+  │   │   └─ uc-interviewer 尚未执行，推荐 /pm-uc
+  │   ├── review_results 中无 uc 自检记录
+  │   │   └─ uc note 已产出但未自检，推荐 /pm-uc（重新执行含自检）
+  │   ├── pm_confirmations 中 uc 未确认
+  │   │   └─ 推荐 /pm-confirm
+  │   └── pm_confirmations 中 uc 已确认（且 artifact 与最新产物一致）
+  │       └─ 推荐 /pm-solution
   │
   ├── solution
-  │   ├── artifacts.solution 为空 → solution-writer 尚未执行
-  │   │   └─ 推荐 /pm-solution
+  │   ├── review_results 中 solution review 为 fail
+  │   │   └─ 推荐回到 /pm-solution（fail 阻断，PM 不可越权）
+  │   ├── artifacts.solution 为空
+  │   │   └─ solution-writer 尚未执行，推荐 /pm-solution
   │   ├── review_results 中无 solution review 记录
   │   │   └─ solution 已产出，推荐 /pm-solution-review
-  │   ├── review_results 中 solution review 为 fail
-  │   │   └─ 推荐回到 /pm-solution（根据 review 修正）
-  │   ├── review_results 中 solution review 为 warn
-  │   │   └─ 推荐 PM 确认风险后决定 /pm-proto 或回到 /pm-solution
-  │   ├── review_results 中 solution review 为 pass
-  │   │   └─ pm_confirmations 中无 solution 确认 → 等待 PM 确认
-  │   └── pm_confirmations 中 solution 已确认
+  │   ├── pm_confirmations 中 solution 未确认
+  │   │   └─ 推荐 /pm-confirm
+  │   └── pm_confirmations 中 solution 已确认（且 artifact 与最新产物一致）
   │       └─ 推荐 /pm-proto
   │
   ├── prototype
-  │   ├── artifacts.prototype 为空 → prototype-designer 尚未执行
-  │   │   └─ 推荐 /pm-proto
+  │   ├── review_results 中 prototype review 为 fail
+  │   │   └─ 推荐回到 /pm-proto（fail 阻断，PM 不可越权）
+  │   ├── artifacts.prototype 为空
+  │   │   └─ prototype-designer 尚未执行，推荐 /pm-proto
   │   ├── review_results 中无 prototype review 记录
   │   │   └─ prototype 已产出，推荐 /pm-proto-review
-  │   ├── review_results 中 prototype review 为 fail
-  │   │   └─ 推荐回到 /pm-proto（根据 review 修正）
-  │   ├── review_results 中 prototype review 为 warn
-  │   │   └─ 推荐 PM 确认风险后决定 /pm-prd 或回到 /pm-proto
-  │   ├── review_results 中 prototype review 为 pass
-  │   │   └─ pm_confirmations 中无 prototype 确认 → 等待 PM 确认
-  │   └── pm_confirmations 中 prototype 已确认
+  │   ├── pm_confirmations 中 prototype 未确认
+  │   │   └─ 推荐 /pm-confirm
+  │   └── pm_confirmations 中 prototype 已确认（且 artifact 与最新产物一致）
   │       └─ 推荐 /pm-prd
   │
   └── prd
-      ├── artifacts.prd 为空 → prd-writer 尚未执行
-      │   └─ 推荐 /pm-prd
+      ├── review_results 中 prd review 为 fail
+      │   └─ 推荐回到 /pm-prd（fail 阻断，PM 不可越权）
+      ├── artifacts.prd 为空
+      │   └─ prd-writer 尚未执行，推荐 /pm-prd
       ├── review_results 中无 prd review 记录
       │   └─ PRD 已产出，推荐 /pm-prd-review
-      ├── review_results 中 prd review 为 fail
-      │   └─ 推荐回到 /pm-prd（根据 review 修正）
-      ├── review_results 中 prd review 为 warn
-      │   └─ 推荐 PM 确认风险后决定或回到 /pm-prd
-      ├── review_results 中 prd review 为 pass
-      │   └─ pm_confirmations 中无 prd 确认 → 等待 PM 确认
-      └── pm_confirmations 中 prd 已确认
+      ├── pm_confirmations 中 prd 未确认
+      │   └─ 推荐 /pm-confirm
+      └── pm_confirmations 中 prd 已确认（且 artifact 与最新产物一致）
           └─ 主链路完成，PRD 可归档。如需修改用后续 fix/change 命令。
 ```
+
+注意：solution/prototype/prd 的 warn 状态不单独分支——warn 不阻断审查通过，review 为 warn 时审查已通过，然后走"未确认 → /pm-confirm"路径。PM 在 /pm-confirm 中看到 warn 记录并知情确认。
 
 ## 4. 输出格式
 

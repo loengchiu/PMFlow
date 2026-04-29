@@ -37,7 +37,7 @@ interviewer 阶段不设独立 reviewer skill。门禁由 interviewer 在生成 
 
 ### 2.2 自检输出
 
-自检结果写入 `.pmflow/reviews/{stage}-self-check-*.yaml`：
+自检结果写入 `.pmflow/reviews/{stage}-self-check-*.yaml`。`reviewed_artifact` 和 `reviewed_metadata` 为**必填字段**，必须分别等于本次生成的人读产物路径和机读 metadata 路径，不得为空：
 
 ```yaml
 stage: brd
@@ -47,6 +47,8 @@ fail_reasons: []
 warnings: []
 open_questions_after_check: []
 checked_at: ""
+reviewed_artifact: ""   # 必填：本次生成的人读产物路径
+reviewed_metadata: ""   # 必填：本次生成的机读 metadata 路径
 ```
 
 ### 2.3 fail 处理
@@ -95,12 +97,15 @@ reviewer 不得：
 - 阶段产物已落盘（`output/` 和 `.pmflow/` 均有对应文件）
 - reviewer 或自检已给出 verdict
 - **PM 已阅读人读产物**
-- **PM 已显式确认**（记录到 `pm_confirmations`）
+- **PM 显式执行 `/pm-confirm` 完成确认**（推进 `current_stage`，写回 `pm_confirmations`、`approved_baselines`、`next_allowed_commands`）
 - 下一步只提示命令名，不代执行
 
-PM 确认之前，不得：
+确认由 `/pm-confirm` 统一处理，规则见 `contracts/confirmation.md`。
+
+PM 执行 `/pm-confirm` 之前，不得：
 
 - 开始下一阶段的 writer
+- 将确认自动写入 status
 - 提示"要我现在做吗"
 - 以"看起来没问题"为由自动继续
 

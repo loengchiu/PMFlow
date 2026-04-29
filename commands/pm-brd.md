@@ -24,5 +24,5 @@ argument-hint: 可附带需求文本、文档路径或补充说明
 
 - 不进入 uc / solution / prototype / prd
 - 不自动将背景材料当作会后回答
-- 不在 PM 确认前提示下一阶段命令
+- 完成后只提示 /pm-confirm，不提示下一阶段命令
 - 不生成方案或原型

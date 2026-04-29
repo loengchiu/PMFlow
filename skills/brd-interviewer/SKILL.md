@@ -16,9 +16,10 @@
 
 ### 2.1 读取状态
 
-读取 `.pmflow/status.yaml`，确认 `current_stage` 为 `brd` 或 `uninitialized`。
+读取 `.pmflow/status.yaml`，确认：
+- `current_stage` 为 `brd` 或 `uninitialized`；或者 `next_allowed_commands` 包含 `/pm-brd`（PM 确认后授权回归补充）
 
-如果 `current_stage` 为 `solution` / `prototype` / `prd`：
+如果 `current_stage` 为 `solution` / `prototype` / `prd` 且 `next_allowed_commands` 不包含 `/pm-brd`：
 - 停止。提示 PM 当前阶段不允许回到 brd，除非显式重置状态。
 
 ### 2.2 收集输入材料
@@ -103,6 +104,7 @@
 ### 5.3 更新状态
 
 更新 `.pmflow/status.yaml`：
+- `current_stage: brd`
 - `artifacts.brd` 追加新文件路径
 - 如有新的 open_questions，追加
 
@@ -140,7 +142,11 @@ fail_reasons: []
 warnings: []
 open_questions_after_check: []
 checked_at: ""
+reviewed_artifact: ""   # 必填：本次生成的人读产物路径（output/brd/brd-note-*.md），不得为空
+reviewed_metadata: ""   # 必填：本次生成的机读 metadata 路径（.pmflow/metadata/brd/brd-*.yaml），不得为空
 ```
+
+`reviewed_artifact` 必须等于本次生成的 `output/brd/brd-note-{timestamp}.md` 实际路径，`reviewed_metadata` 必须等于本次生成的 `.pmflow/metadata/brd/brd-{timestamp}.yaml` 实际路径。两者均不得使用空字符串或占位符落盘。
 
 同步更新 `.pmflow/status.yaml` 的 `review_results`。
 
@@ -163,13 +169,13 @@ BRD 访谈完成。
 - .pmflow/metadata/brd/brd-*.yaml
 - .pmflow/reviews/brd-self-check-*.yaml
 
-需要 PM 确认：
+需要 PM 确认（请执行 /pm-confirm）：
 - 业务目标是否准确
 - 需求方角色是否完整
 - 范围边界是否认可
 - 未确认项是否可接受
 
-下一步唯一建议：{/pm-uc（pass 或 warn 经 PM 确认后）| /pm-brd（fail 时）}
+下一步唯一建议：{/pm-confirm（pass 或 warn 时）| /pm-brd（fail 时）}
 ```
 
 ### 7.2 禁止行为
