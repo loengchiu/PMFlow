@@ -128,6 +128,8 @@ next_allowed_commands: <按 confirmation.md §4.1 映射>
 
 ### 5.1 确认成功
 
+如果当前阶段不是 prd（终端阶段）：
+
 ```text
 PM 确认完成。
 
@@ -141,6 +143,23 @@ PM 确认完成。
 - {stage}: {artifact_path}
 
 下一步唯一建议：{next_allowed_commands[0]}
+```
+
+如果当前阶段是 prd（终端阶段）：
+
+```text
+PM 确认完成。
+
+阶段：prd
+产物：{artifact_path}
+确认时间：{timestamp}
+自检/review 结果：{verdict}
+{如果是 warn：风险项已记录到 open_questions}
+
+已确认基线：
+- prd: {artifact_path}
+
+主链路完成，PRD 可归档。
 ```
 
 ### 5.2 确认被拒（fail）

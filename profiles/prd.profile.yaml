@@ -1,0 +1,172 @@
+# prd-writer 的阶段产物契约
+# 定义 PRD 必须包含的字段、方法论要求、门禁条件
+
+profile:
+  name: prd
+  version: "0.1.0"
+  stage: prd
+  skill: prd-writer
+  gate_mode: reviewer_check_then_pm_confirmation
+  reviewer_required: true
+  reviewer_blocking: true
+  pm_override_allowed: false
+  terminal_stage: true
+  prerequisite_stages:
+    - brd: confirmed
+    - uc: confirmed
+    - solution: confirmed
+    - prototype: confirmed
+      # 四个前置阶段的确认基线绑定要求（prd-writer 和 prd-reviewer 共用前置校验）：
+      # 对 brd、uc、solution、prototype 每个阶段均须满足：
+      # 1. pm_confirmations 中 confirmed: true
+      # 2. 确认记录 artifact 等于 artifacts.<stage> 最新产物
+      # 3. approved_baselines 中 artifact_path 等于 artifacts.<stage> 最新产物
+      # 4. review_results/self_check 最近一次非 fail
+      # 5. reviewed_artifact 等于 artifacts.<stage> 最新产物
+      # 6. reviewed_metadata 等于该阶段最新 metadata
+
+# 输入
+inputs:
+  - name: confirmed_prototype
+    source: output/prototype/ + .pmflow/metadata/prototype/
+    required: true
+    baseline_binding: 使用 pm_confirmations / approved_baselines 中绑定的 artifact 路径
+  - name: confirmed_solution
+    source: output/solution/ + .pmflow/metadata/solution/
+    required: true
+  - name: confirmed_uc
+    source: output/uc/ + .pmflow/metadata/uc/
+    required: true
+  - name: confirmed_brd
+    source: output/brd/ + .pmflow/metadata/brd/
+    required: true
+  - name: relevant_materials
+    source: PM 补充（业务规则、数据规范、权限说明等）
+    required: false
+
+# 必须使用的方法论（生成前推导用）
+required_methods:
+  - as_is_to_be
+  - gap_analysis
+  - information_architecture
+  - data_dictionary_design
+  - acceptance_criteria
+
+# 人读产物必须覆盖的内容
+human_output_requirements:
+  background_and_goal:
+    required: true
+    description: 项目背景与目标（来自已确认 BRD）
+  scope:
+    required: true
+    description: 功能范围（in scope / out of scope，来自已确认 BRD + solution）
+    min_quality:
+      - 明确列出范围内的模块、页面
+      - 明确列出范围外的内容
+  module_page_action_details:
+    required: true
+    description: 模块/页面/操作详细说明
+    min_quality:
+      - 每个模块有功能说明
+      - 每个页面有字段清单（含类型、必填、校验规则）
+      - 每个操作有前置条件、执行步骤、后置结果
+  business_rules:
+    required: true
+    description: 业务规则
+    min_quality:
+      - 每条规则有触发条件和执行逻辑
+      - 覆盖审批、计算、校验等核心规则
+  exception_rules:
+    required: true
+    description: 异常处理规则
+    min_quality:
+      - 覆盖关键异常场景（数据异常、权限不足、并发冲突等）
+      - 每条异常有触发条件和处理方式
+  permission_rules:
+    required: true
+    description: 权限规则
+    min_quality:
+      - 明确角色-页面-操作权限矩阵
+      - 标注数据权限范围（本人/本部门/全部等）
+  data_dictionary:
+    required: true
+    description: 数据字典
+    min_quality:
+      - 核心实体字段有类型、长度、必填、默认值、说明
+      - 标注枚举值含义
+  field_page_relationship:
+    required: true
+    description: 字段与页面关系
+    min_quality:
+      - 明确每个字段出现在哪些页面
+      - 标注字段在各页面中的展现形式（展示/编辑/筛选）
+  data_impact:
+    required: true
+    description: 数据影响范围
+    min_quality:
+      - 标注本需求涉及的数据表/实体
+      - 标注对现有数据的影响（新增/修改/只读）
+  acceptance_criteria:
+    required: true
+    description: 验收标准
+    min_quality:
+      - 每条验收标准可测试、可判断
+      - 覆盖正常路径和关键异常路径
+  open_questions:
+    required: true
+    description: 待确认问题
+
+# 机读 metadata 必须覆盖的字段
+machine_output_requirements:
+  - field: modules
+    description: 结构化模块定义
+  - field: pages
+    description: 结构化页面定义（含字段、操作）
+  - field: business_rules
+    description: 结构化业务规则
+  - field: exception_rules
+    description: 结构化异常规则
+  - field: permission_rules
+    description: 结构化权限矩阵
+  - field: data_dictionary
+    description: 结构化数据字典
+  - field: field_page_map
+    description: 字段-页面映射关系
+  - field: acceptance_criteria
+    description: 结构化验收标准
+  - field: source_trace
+    description: 每条 PRD 内容的 BRD/UC/solution/prototype 来源追溯
+
+# reviewer 检查项
+reviewer_checks:
+  - id: prd_independent_archive_quality
+    description: PRD 是否可作为独立归档文档（不依赖阅读前置产物即可理解）
+    severity: fail_if_dependent
+  - id: no_push_back_to_prototype
+    description: PRD 不得包含应属于 prototype 阶段的界面描述、交互细节
+    severity: fail_if_found
+  - id: field_dictionary_consistency
+    description: 数据字典字段与各页面字段清单是否一致
+    severity: fail_if_inconsistent
+  - id: action_rule_exception_permission_coverage
+    description: 操作/规则/异常/权限是否完整覆盖
+    severity: fail_if_missing
+  - id: acceptance_criteria_quality
+    description: 验收标准是否可测试、可判断
+    severity: fail_if_weak
+  - id: no_machine_leakage
+    description: 人读产物中无 anchor_id/rules_ref/prototype_ref/machine_profile/internal_path/prd_ref
+    severity: fail_if_found
+
+# 门禁条件
+gate:
+  reviewer_blocking: true
+  pm_override_allowed: false
+  after_review:
+    pass: 推荐 /pm-confirm，PM 确认后 PRD 归档（主链路完成）
+    warn: 推荐 /pm-confirm，PM 知情确认后 PRD 归档或回 /pm-prd
+    fail: 只能回到 /pm-prd 修正
+  pm_confirmation_required: true
+  confirmed_stage: prd
+  terminal: true
+  on_confirm: current_stage 保持 prd，next_allowed_commands 为空（主链路终点）
