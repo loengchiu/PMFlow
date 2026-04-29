@@ -1,0 +1,97 @@
+# uc-interviewer 的阶段产物契约
+# 定义 UC note 必须包含的字段、自检标准和门禁条件
+
+profile:
+  name: uc
+  version: "0.1.0"
+  stage: uc
+  skill: uc-interviewer
+  gate_mode: interviewer_self_check_then_pm_confirmation
+  reviewer_required: false
+
+# 人读产物必须覆盖的内容
+human_output_requirements:
+  user_roles:
+    required: true
+    description: 用户角色清单及其核心任务
+    min_quality:
+      - 至少包含一个核心用户角色
+      - 每个角色有对应的核心任务或场景
+      - 角色来源必须可追溯到已确认的 BRD
+  user_journeys:
+    required: true
+    description: 每个核心角色的主要用户路径
+    min_quality:
+      - 每条路径有明确的起点和终点
+      - 路径之间有区分度
+  task_flows:
+    required: true
+    description: 关键任务的操作流和决策点
+    min_quality:
+      - 每个任务流有步骤序列
+      - 关键决策点已标注
+      - 关键步骤标注状态变化
+  edge_cases_and_exceptions:
+    required: false
+    description: 异常路径、边界情况
+  gap_analysis:
+    required: false
+    description: 现有流程与目标流程的差异
+  input_classification_summary:
+    required: true
+    description: 本轮四类输入的来源和置信度摘要
+
+# 机读 metadata 必须覆盖的字段
+machine_output_requirements:
+  - field: source_items
+    description: 每条输入材料（含本轮新增）的分类、来源、置信度
+  - field: questions_asked
+    description: interviewer 提出的问题列表及回答状态
+  - field: user_roles
+    description: 结构化的角色定义（含来源追溯）
+  - field: journeys
+    description: 结构化的用户路径列表
+  - field: task_flows
+    description: 结构化的任务流列表
+  - field: gaps
+    description: 识别的差异和缺口
+  - field: open_questions
+    description: 未确认项
+
+# 自检标准
+self_check_criteria:
+  fail:
+    - 输入类型混淆：背景材料被当作会后回答回填
+    - 未形成可判断的用户任务
+    - 关键角色缺失（缺少核心用户角色）
+    - 用户角色无法追溯到已确认的 BRD
+    - 当前产出无法支撑进入方案阶段
+  warn:
+    - 存在未确认项，但不影响进入 solution 做初步方案草稿
+    - 部分角色/场景细节待补充，但主路径已清楚
+    - 部分异常路径未完全覆盖，但核心流程完整
+  pass:
+    - 用户角色、主路径、关键任务流足够支撑下一阶段（solution）
+    - 原始需求、背景材料、会后回答、补充证据已正确区分
+    - 未确认项已显式标注在 open_questions 中
+
+# 自检输出格式
+self_check_output:
+  file_pattern: .pmflow/reviews/uc-self-check-*.yaml
+  required_fields:
+    - stage
+    - check_type
+    - verdict
+    - fail_reasons
+    - warnings
+    - open_questions_after_check
+    - checked_at
+
+# 门禁条件
+gate:
+  after_self_check:
+    pass: 等待 PM 确认后推荐 /pm-solution
+    warn: 提示 PM 风险，等待 PM 确认后推荐 /pm-solution 或 /pm-uc
+    fail: 不得推荐 /pm-solution，只能推荐 /pm-uc 补充，PM 不可跳过
+  pm_confirmation_required: true
+  confirmed_stage: uc

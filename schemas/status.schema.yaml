@@ -1,0 +1,172 @@
+# .pmflow/status.yaml 的结构化 schema
+# 用于 pmflow-lint.py 做 schema-check
+
+schema:
+  name: pmflow-status
+  version: "0.1.0"
+
+fields:
+  project_name:
+    type: string
+    required: true
+    description: 项目名称
+
+  current_stage:
+    type: enum
+    required: true
+    values:
+      - uninitialized
+      - brd
+      - uc
+      - solution
+      - prototype
+      - prd
+    description: 当前所处阶段
+
+  artifacts:
+    type: object
+    required: true
+    properties:
+      brd:
+        type: array
+        items: string
+        description: output/brd/ 下已产出的文件路径列表
+      uc:
+        type: array
+        items: string
+        description: output/uc/ 下已产出的文件路径列表
+      solution:
+        type: array
+        items: string
+        description: output/solution/ 下已产出的文件路径列表
+      prototype:
+        type: array
+        items: string
+        description: output/prototype/ 下已产出的文件路径列表
+      prd:
+        type: array
+        items: string
+        description: output/prd/ 下已产出的文件路径列表
+
+  approved_baselines:
+    type: array
+    required: true
+    items:
+      type: object
+      required_fields:
+        - stage
+        - artifact_path
+        - confirmed_at
+      properties:
+        stage:
+          type: enum
+          values:
+            - brd
+            - uc
+            - solution
+            - prototype
+            - prd
+        artifact_path:
+          type: string
+        confirmed_at:
+          type: string
+          format: iso8601
+
+  open_questions:
+    type: array
+    required: true
+    items:
+      type: object
+      required_fields:
+        - id
+        - question
+        - status
+      properties:
+        id:
+          type: string
+        question:
+          type: string
+        status:
+          type: enum
+          values:
+            - open
+            - resolved
+            - deferred
+        noted_at:
+          type: string
+          format: iso8601
+
+  pm_confirmations:
+    type: array
+    required: true
+    items:
+      type: object
+      required_fields:
+        - stage
+        - artifact
+        - confirmed
+        - confirmed_at
+        - confirmed_by
+      properties:
+        stage:
+          type: enum
+          values:
+            - brd
+            - uc
+            - solution
+            - prototype
+            - prd
+        artifact:
+          type: string
+          description: 被确认的产物路径
+        confirmed:
+          type: boolean
+        confirmed_at:
+          type: string
+          format: iso8601
+        confirmed_by:
+          type: string
+          description: 确认人标识
+
+  review_results:
+    type: array
+    required: true
+    items:
+      type: object
+      required_fields:
+        - stage
+        - check_type
+        - verdict
+        - checked_at
+      properties:
+        stage:
+          type: enum
+          values:
+            - brd
+            - uc
+            - solution
+            - prototype
+            - prd
+        check_type:
+          type: enum
+          values:
+            - self_check
+            - reviewer_check
+        verdict:
+          type: enum
+          values:
+            - pass
+            - warn
+            - fail
+        fail_reasons:
+          type: array
+          items: string
+        warnings:
+          type: array
+          items: string
+        checked_at:
+          type: string
+          format: iso8601
+        reviewer:
+          type: string
+          description: 执行检查的 reviewer 标识（reviewer_check 时必填）

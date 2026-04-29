@@ -1,0 +1,103 @@
+# solution-reviewer 的审查契约
+# 定义 solution review 的检查项、阻断规则和输出格式
+
+profile:
+  name: solution-review
+  version: "0.1.0"
+  stage: solution
+  skill: solution-reviewer
+  type: reviewer
+  reviewer_blocking: true
+  pm_override_allowed: false
+  reviews_stage: solution
+
+# reviewer 独立检查项（逐项执行）
+checks:
+  - id: build_type_correctness
+    label: 建设类型判定正确性
+    method: 检查 solution metadata 中 build_type_evidence 的四维度判定是否与 BRD 范围一致
+    verdict:
+      pass: 四维度（部署/代码/数据库/实例）判定正确，hybrid 标注清晰
+      warn: 判定基本正确但个别维度证据不充分
+      fail: 建设类型明显误判（如旧系统参考但新部署被判为 iteration）
+    blocking: true
+
+  - id: field_coverage
+    label: 关键字段覆盖
+    method: 逐页检查列表/表单字段是否覆盖了 UC 中用户任务所需的决策信息
+    verdict:
+      pass: 关键字段覆盖完整，列表字段按用户判断优先级排序
+      warn: 覆盖基本完整但部分列表字段优先级存疑
+      fail: 关键页面缺少核心字段
+    blocking: true
+
+  - id: flow_coverage
+    label: 流程覆盖
+    method: 检查 module_main_flow 和 page_flow_rules 是否覆盖了 UC 中的主路径和关键异常路径
+    verdict:
+      pass: 主流程和关键异常路径完整，有提交/通过/驳回的完整口径
+      warn: 主流程完整但部分异常路径未覆盖
+      fail: 主流程缺失关键步骤或审批口径不完整
+    blocking: true
+
+  - id: information_architecture_quality
+    label: 信息架构质量
+    method: 检查列表页字段是否按用户判断优先级排序，表单字段是否有合理分组
+    verdict:
+      pass: 列表页信息优先级合理，表单字段分组清晰
+      warn: 基本合理但个别页面信息优先级可优化
+      fail: 列表页几十个字段无优先级或表单字段无分组
+    blocking: false
+
+  - id: no_machine_leakage
+    label: 机读字段无泄漏
+    method: 在人读产物中搜索 forbidden_fields（anchor_id, rules_ref, prototype_ref, machine_profile, internal_path）
+    verdict:
+      pass: 未发现任何禁止字段
+      warn: N/A（此检查为二元判定，存在即 fail，无 warn 状态）
+      fail: 发现禁止字段
+    blocking: true
+
+  - id: no_unconfirmed_scope_expansion
+    label: 无未确认范围扩展
+    method: 对比 solution 中的 page_scope 和 module_scope 是否超出 BRD 的范围边界
+    verdict:
+      pass: 范围在 BRD 边界内，或扩展项已标注为 open_question
+      warn: 存在合理扩展但未充分说明
+      fail: 显著超出 BRD 边界且未标注、未确认
+    blocking: true
+
+# 输出
+outputs:
+  human:
+    path_pattern: output/review/solution-review-*.md
+    required_sections:
+      - 检查摘要（逐项 verdict）
+      - fail 项详情（具体问题、位置、修正建议）
+      - warn 项说明（风险点）
+      - 整体 verdict
+      - 下一步建议（pass→/pm-proto, warn→PM决策, fail→回到/pm-solution）
+  machine:
+    path_pattern: .pmflow/reviews/solution-review-*.yaml
+    required_fields:
+      - stage
+      - check_type
+      - verdict
+      - checks_detail（逐项 verdict、问题描述、修正建议）
+      - fail_reasons
+      - warnings
+      - checked_at
+      - reviewer
+
+# reviewer 行为约束
+reviewer_constraints:
+  must:
+    - 独立读取 writer 产出的人读和机读文件
+    - 逐项对照本 profile 的 checks 执行检查
+    - 给出独立判定
+    - fail 时给出具体修正建议
+  must_not:
+    - 复述 writer 的判断或措辞
+    - 在未逐项检查的情况下给 pass
+    - 用"整体完整，可以进入下一步"替代逐项判定
+    - 在 fail 时提示 /pm-proto

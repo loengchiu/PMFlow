@@ -1,0 +1,84 @@
+# pm-guide 的阶段流转契约
+# 定义 pm-guide 判断状态时依赖的阶段顺序、门禁类型、推进条件
+
+profile:
+  name: pm-guide
+  version: "0.1.0"
+  purpose: 阶段导航和唯一下一步判断的机读契约
+
+stage_sequence:
+  - uninitialized
+  - brd
+  - uc
+  - solution
+  - prototype
+  - prd
+
+stage_gate_types:
+  uninitialized:
+    gate: none
+    next: /pm-brd
+
+  brd:
+    gate: interviewer_self_check_then_pm_confirmation
+    reviewer_required: false
+    self_check_verdicts: [pass, warn, fail]
+    on_fail: 回到 /pm-brd 补充
+    on_pass_or_warn_pm_confirmed: /pm-uc
+
+  uc:
+    gate: interviewer_self_check_then_pm_confirmation
+    reviewer_required: false
+    self_check_verdicts: [pass, warn, fail]
+    on_fail: 回到 /pm-uc 补充
+    on_pass_or_warn_pm_confirmed: /pm-solution
+
+  solution:
+    gate: reviewer_check_then_pm_confirmation
+    reviewer_required: true
+    reviewer_blocking: true
+    pm_override_allowed: false
+    on_review_fail: 回到 /pm-solution 修正
+    on_review_pass_pm_confirmed: /pm-proto
+
+  prototype:
+    gate: reviewer_check_then_pm_confirmation
+    reviewer_required: true
+    reviewer_blocking: true
+    pm_override_allowed: false
+    on_review_fail: 回到 /pm-proto 修正
+    on_review_pass_pm_confirmed: /pm-prd
+
+  prd:
+    gate: reviewer_check_then_pm_confirmation
+    reviewer_required: true
+    reviewer_blocking: true
+    pm_override_allowed: false
+    on_review_fail: 回到 /pm-prd 修正
+    on_review_pass_pm_confirmed: 主链路完成，PRD 可归档
+
+# pm-guide 读取 status.yaml 时依赖的字段
+required_status_fields:
+  - project_name
+  - current_stage
+  - artifacts
+  - approved_baselines
+  - open_questions
+  - pm_confirmations
+  - review_results
+
+# pm-guide 的判定优先级（从高到低）
+decision_priority:
+  1: review_results 中的 fail 阻断（最高优先）
+  2: pm_confirmations 中的未确认项
+  3: artifacts 中的空产出（技能未执行）
+  4: review_results 中的 warn（风险记录）
+  5: 已确认可推进的下一阶段（最低优先）
+
+# pm-guide 禁止推荐跨越的阶段
+forbidden_skips:
+  - uninitialized → uc（跳过 brd）
+  - brd 未确认 → solution（跳过 uc）
+  - uc 未确认 → solution（跳过确认）
+  - solution review 未 pass → prototype
+  - prototype review 未 pass → prd
