@@ -1,0 +1,68 @@
+stage: solution
+timestamp: "2026-04-29T10:04:00"
+project_name: 采购订单审批流程（E2E Mock）
+modules:
+  - id: order_mgmt
+    name: 订单管理
+    pages: [order_list, order_detail, order_form]
+  - id: approval_wf
+    name: 审批工作流
+    pages: [my_approvals, approval_detail]
+  - id: approval_log
+    name: 审批记录
+    pages: [approval_history]
+pages:
+  - id: order_list
+    name: 订单列表
+    type: list
+    module: order_mgmt
+  - id: order_detail
+    name: 订单详情
+    type: detail
+    module: order_mgmt
+  - id: order_form
+    name: 新建/编辑订单
+    type: form
+    module: order_mgmt
+  - id: my_approvals
+    name: 我的审批
+    type: list
+    module: approval_wf
+  - id: approval_detail
+    name: 审批详情
+    type: detail+action
+    module: approval_wf
+  - id: approval_history
+    name: 审批记录
+    type: list
+    module: approval_log
+flows:
+  main_flow:
+    steps:
+      - actor: Purchaser
+        action: submit
+        next: dept_approve
+      - actor: DeptManager
+        action: dept_approve
+        next: finance_approve
+      - actor: FinanceApprover
+        action: finance_approve
+        next: gm_approve (if amount > 100000) else complete
+      - actor: GM
+        action: gm_approve
+        next: complete
+  reject_flow:
+    steps:
+      - from: any_approval_node
+        action: reject
+        next: purchaser_edit
+      - actor: Purchaser
+        action: edit_resubmit
+        next: restart_from_dept
+entities:
+  PurchaseOrder:
+    description: 采购订单主表
+  ApprovalRecord:
+    description: 审批记录表
+state_machine:
+  states: [DRAFT, PENDING_APPROVAL, DEPT_APPROVED, FINANCE_APPROVED, GM_APPROVED, COMPLETED, REJECTED]

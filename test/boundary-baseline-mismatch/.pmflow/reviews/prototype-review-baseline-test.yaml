@@ -1,0 +1,9 @@
+stage: prototype
+check_type: reviewer_check
+verdict: pass
+fail_reasons: []
+warnings: []
+checked_at: "2026-04-30T10:03:00"
+reviewer: prototype-reviewer
+reviewed_artifact: output/prototype/prototype-note-baseline-test.md
+reviewed_metadata: .pmflow/metadata/prototype/prototype-baseline-test.yaml

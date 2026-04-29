@@ -1,0 +1,8 @@
+stage: uc
+check_type: self_check
+verdict: pass
+fail_reasons: []
+warnings: []
+checked_at: "2026-04-30T10:01:00"
+reviewed_artifact: output/uc/uc-note-fail-test.md
+reviewed_metadata: .pmflow/metadata/uc/uc-fail-test.yaml

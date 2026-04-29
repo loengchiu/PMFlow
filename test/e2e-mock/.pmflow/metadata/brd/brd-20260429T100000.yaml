@@ -1,0 +1,42 @@
+stage: brd
+timestamp: "2026-04-29T10:00:00"
+project_name: 采购订单审批流程（E2E Mock）
+roles:
+  - id: purchaser
+    name: 采购专员
+    type: core
+    responsibilities: [发起采购订单]
+  - id: dept_manager
+    name: 部门经理
+    type: core
+    responsibilities: [一级审批]
+  - id: finance
+    name: 财务审批人
+    type: core
+    responsibilities: [二级审批, 预算审核]
+  - id: gm
+    name: 总经理
+    type: conditional
+    responsibilities: [终审, 大额订单]
+business_goals:
+  - id: G001
+    description: 审批周期从5天缩短到2天
+    measurable: true
+  - id: G002
+    description: 审批过程全程可追溯
+    measurable: false
+  - id: G003
+    description: 支持多级审批
+    measurable: true
+constraints:
+  - amount_threshold: 100000
+    approval_chain_length: 3
+    audit_trail: full
+open_questions:
+  - id: Q001
+    question: 10万阈值是否包含10万本身？
+  - id: Q002
+    question: 是否需要支持加急审批通道？
+source_material_type:
+  original_requirements: [财务部门提出的采购审批线上化需求文档 v2.1]
+  post_meeting_answers: [驳回后修改重新提交, 预算占用情况]

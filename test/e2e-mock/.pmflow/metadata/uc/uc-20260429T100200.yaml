@@ -1,0 +1,42 @@
+stage: uc
+timestamp: "2026-04-29T10:02:00"
+project_name: 采购订单审批流程（E2E Mock）
+user_roles:
+  - id: Purchaser
+    name: 采购专员
+  - id: DeptManager
+    name: 部门经理
+  - id: FinanceApprover
+    name: 财务审批人
+  - id: GM
+    name: 总经理
+user_tasks:
+  - id: UC-001
+    name: 采购专员发起采购订单
+    actor: Purchaser
+    precondition: 已登录系统
+    main_flow: [填写订单信息, 提交审批]
+    postcondition: 订单进入待审批状态
+  - id: UC-002
+    name: 部门经理一级审批
+    actor: DeptManager
+    precondition: 有待审批订单
+    main_flow: [查看订单, 通过/驳回]
+  - id: UC-003
+    name: 财务审批人二级审批
+    actor: FinanceApprover
+    precondition: 已通过一级审批
+    main_flow: [查看订单+预算, 通过/驳回]
+  - id: UC-004
+    name: 总经理终审
+    actor: GM
+    precondition: 订单金额>10万且已通过二级审批
+    main_flow: [查看订单+审批历史, 通过/驳回]
+coverage_matrix:
+  UC-001: [Purchaser]
+  UC-002: [DeptManager]
+  UC-003: [FinanceApprover]
+  UC-004: [GM]
+open_questions:
+  - id: Q003
+    question: 采购专员提交后是否可撤回？

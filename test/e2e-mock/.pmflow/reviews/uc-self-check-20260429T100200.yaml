@@ -1,0 +1,11 @@
+stage: uc
+check_type: self_check
+verdict: pass
+fail_reasons: []
+warnings: []
+open_questions_after_check:
+  - id: Q003
+    question: 采购专员提交后是否可撤回？
+checked_at: "2026-04-29T10:02:00"
+reviewed_artifact: output/uc/uc-note-20260429T100200.md
+reviewed_metadata: .pmflow/metadata/uc/uc-20260429T100200.yaml

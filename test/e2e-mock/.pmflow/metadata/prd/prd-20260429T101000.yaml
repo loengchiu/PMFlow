@@ -1,0 +1,316 @@
+stage: prd
+timestamp: "2026-04-29T10:10:00"
+project_name: 采购订单审批流程（E2E Mock）
+modules:
+  - id: order_mgmt
+    name: 订单管理
+  - id: approval_wf
+    name: 审批工作流
+  - id: approval_log
+    name: 审批记录
+pages:
+  - id: order_list
+    name: 订单列表
+    type: list
+    fields: [order_id, supplier_name, amount, status, created_at]
+    actions: [create, view_detail, edit]
+  - id: order_form
+    name: 新建/编辑订单
+    type: form
+    fields: [supplier_id, supplier_name, amount, description, attachment]
+    actions: [save_draft, submit, cancel]
+  - id: order_detail
+    name: 订单详情
+    type: detail
+    fields: [order_id, supplier_name, amount, description, status, created_by, created_at]
+  - id: my_approvals
+    name: 我的审批
+    type: list
+    fields: [order_id, created_by, amount, created_at, approval_level]
+    actions: [enter_approval]
+  - id: approval_detail
+    name: 审批详情
+    type: detail+action
+    fields: [order_id, supplier_name, amount, description, created_by, comment]
+    actions: [approve, reject, back_to_list]
+  - id: approval_history
+    name: 审批记录
+    type: list
+    fields: [approver_id, approver_role, result, comment, approved_at, approval_level]
+business_rules:
+  - id: BR-001
+    name: 金额阈值判断
+    trigger: 财务审批通过后
+    logic: 订单金额>100000则进入总经理终审
+  - id: BR-002
+    name: 驳回重新审批
+    trigger: 任意审批节点驳回
+    logic: 状态变为REJECTED，从一级重新开始
+  - id: BR-003
+    name: 审批意见必填
+    trigger: 执行通过或驳回操作
+    logic: 审批意见不能为空
+  - id: BR-004
+    name: 订单金额校验
+    trigger: 提交订单时
+    logic: 金额>0且最多2位小数
+  - id: BR-005
+    name: 审批不可越级
+    trigger: 审批操作时
+    logic: 只有当前审批节点的指定审批人可操作
+exception_rules:
+  - id: EX-001
+    scenario: 订单已被他人审批
+    trigger: 审批人打开详情后订单已被其他人审批
+    handling: 刷新页面，禁用操作按钮
+  - id: EX-002
+    scenario: 提交时供应商已失效
+    trigger: 采购专员提交时供应商已被停用
+    handling: 阻止提交，提示更换供应商
+  - id: EX-003
+    scenario: 附件上传失败
+    trigger: 网络异常或文件过大
+    handling: 提示失败原因，保留其他字段
+  - id: EX-004
+    scenario: 订单金额为0或负数
+    trigger: 用户输入无效金额
+    handling: 前端校验阻止提交
+  - id: EX-005
+    scenario: 无审批权限
+    trigger: 用户试图审批非自己负责的订单
+    handling: 隐藏操作按钮或返回无权限提示
+permission_rules:
+  roles:
+    - id: Purchaser
+      name: 采购专员
+    - id: DeptManager
+      name: 部门经理
+    - id: FinanceApprover
+      name: 财务审批人
+    - id: GM
+      name: 总经理
+  matrix:
+    - role: Purchaser
+      page: order_list
+      permissions: [view, create, edit]
+      data_scope: own
+    - role: Purchaser
+      page: order_form
+      permissions: [create, edit]
+      data_scope: own
+    - role: Purchaser
+      page: order_detail
+      permissions: [view]
+      data_scope: own
+    - role: DeptManager
+      page: my_approvals
+      permissions: [view, approve]
+      data_scope: dept
+    - role: DeptManager
+      page: approval_detail
+      permissions: [view, approve]
+      data_scope: dept
+    - role: FinanceApprover
+      page: my_approvals
+      permissions: [view, approve]
+      data_scope: all
+    - role: FinanceApprover
+      page: approval_detail
+      permissions: [view, approve]
+      data_scope: all
+    - role: GM
+      page: my_approvals
+      permissions: [view, approve]
+      data_scope: all
+    - role: GM
+      page: approval_detail
+      permissions: [view, approve]
+      data_scope: all
+    - role: "*"
+      page: approval_history
+      permissions: [view]
+      data_scope: related
+data_dictionary:
+  PurchaseOrder:
+    - field: order_id
+      type: string
+      length: 32
+      required: true
+      default: 系统生成
+    - field: supplier_id
+      type: string
+      length: 32
+      required: true
+    - field: supplier_name
+      type: string
+      length: 100
+      required: true
+    - field: amount
+      type: decimal
+      length: "12,2"
+      required: true
+    - field: description
+      type: string
+      length: 500
+      required: false
+    - field: status
+      type: enum
+      required: true
+      default: DRAFT
+      enum_values: [DRAFT, PENDING_APPROVAL, DEPT_APPROVED, FINANCE_APPROVED, GM_APPROVED, COMPLETED, REJECTED]
+    - field: created_by
+      type: string
+      length: 32
+      required: true
+    - field: created_at
+      type: datetime
+      required: true
+      default: 当前时间
+    - field: updated_at
+      type: datetime
+      required: true
+      default: 当前时间
+  ApprovalRecord:
+    - field: record_id
+      type: string
+      length: 32
+      required: true
+    - field: order_id
+      type: string
+      length: 32
+      required: true
+    - field: approval_level
+      type: int
+      required: true
+      enum_values: [1, 2, 3]
+    - field: approver_id
+      type: string
+      length: 32
+      required: true
+    - field: approver_role
+      type: string
+      length: 50
+      required: true
+    - field: result
+      type: enum
+      required: true
+      enum_values: [APPROVED, REJECTED]
+    - field: comment
+      type: string
+      length: 500
+      required: true
+    - field: approved_at
+      type: datetime
+      required: true
+field_page_map:
+  - field: order_id
+    entity: PurchaseOrder
+    order_list: 展示
+    order_detail: 展示
+  - field: supplier_name
+    entity: PurchaseOrder
+    order_list: 展示+筛选
+    order_form: 可编辑(下拉)
+    order_detail: 展示
+  - field: amount
+    entity: PurchaseOrder
+    order_list: 展示+筛选
+    order_form: 可编辑
+    order_detail: 展示
+  - field: status
+    entity: PurchaseOrder
+    order_list: 展示+筛选
+    order_detail: 展示
+  - field: description
+    entity: PurchaseOrder
+    order_form: 可编辑
+    order_detail: 展示
+  - field: approver_role
+    entity: ApprovalRecord
+    approval_detail: 展示
+    approval_history: 展示
+  - field: result
+    entity: ApprovalRecord
+    approval_detail: 展示
+    approval_history: 展示+筛选
+  - field: comment
+    entity: ApprovalRecord
+    approval_detail: 可编辑(审批时)
+    approval_history: 展示
+  - field: approved_at
+    entity: ApprovalRecord
+    approval_detail: 展示
+    approval_history: 展示
+acceptance_criteria:
+  - id: AC-001
+    scenario: 采购专员创建并提交采购订单
+    precondition: 已登录为采购专员
+    steps: [进入订单列表, 点击新建, 填写必填字段, 点击提交]
+    expected: 订单创建成功，状态为PENDING_APPROVAL
+  - id: AC-002
+    scenario: 部门经理审批通过（≤10万）
+    precondition: 订单待部门经理审批
+    steps: [进入我的审批, 查看订单详情, 填写意见, 点击通过]
+    expected: 订单进入财务审批
+  - id: AC-003
+    scenario: 财务审批通过（≤10万）
+    precondition: 订单待财务审批
+    steps: [进入我的审批, 填写意见, 点击通过]
+    expected: 订单完成，状态为COMPLETED
+  - id: AC-004
+    scenario: 财务审批通过（>10万）
+    precondition: 订单金额>10万
+    steps: [填写意见, 点击通过]
+    expected: 进入总经理终审
+  - id: AC-005
+    scenario: 总经理终审通过
+    precondition: 订单待总经理审批
+    steps: [填写意见, 点击通过]
+    expected: 订单完成
+  - id: AC-006
+    scenario: 任意节点审批驳回
+    precondition: 订单在审批流程中
+    steps: [填写驳回意见, 点击驳回]
+    expected: 状态REJECTED，可编辑重新提交
+  - id: AC-007
+    scenario: 驳回后重新提交
+    precondition: 订单REJECTED
+    steps: [编辑订单, 提交]
+    expected: 从一级重新审批
+  - id: AC-008
+    scenario: 无效金额被阻止
+    precondition: 金额≤0
+    steps: [填写金额≤0, 点击提交]
+    expected: 前端拦截提示
+  - id: AC-009
+    scenario: 空审批意见被阻止
+    precondition: 审批人不填意见
+    steps: [不填意见, 点击通过]
+    expected: 前端拦截提示
+  - id: AC-010
+    scenario: 审批记录可追溯
+    precondition: 订单已完成多级审批
+    steps: [进入审批记录, 筛选订单]
+    expected: 显示完整审批时间线
+data_impact:
+  - entity: PurchaseOrder
+    type: 新增
+  - entity: ApprovalRecord
+    type: 新增
+source_trace:
+  brd:
+    - 项目背景与目标 → output/brd/brd-note-20260429T100000.md §1-2
+    - 角色定义 → output/brd/brd-note-20260429T100000.md §3
+    - 关键约束 → output/brd/brd-note-20260429T100000.md §4
+  uc:
+    - 用户任务 → output/uc/uc-note-20260429T100200.md §2
+    - 角色覆盖矩阵 → output/uc/uc-note-20260429T100200.md §3
+  solution:
+    - 模块架构 → output/solution/solution-note-20260429T100400.md §1
+    - 页面清单 → output/solution/solution-note-20260429T100400.md §2
+    - 流程设计 → output/solution/solution-note-20260429T100400.md §3
+    - 状态流转 → output/solution/solution-note-20260429T100400.md §5
+  prototype:
+    - 页面字段 → output/prototype/prototype-note-20260429T100700.md §2
+    - 流程原型 → output/prototype/prototype-note-20260429T100700.md §3
+    - 全局交互 → output/prototype/prototype-note-20260429T100700.md §4

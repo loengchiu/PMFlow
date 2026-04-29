@@ -1,0 +1,11 @@
+stage: solution
+check_type: reviewer_check
+verdict: fail
+fail_reasons:
+  - "方案缺少安全审计日志设计"
+  - "未定义审批超时后的降级策略"
+warnings: []
+checked_at: "2026-04-30T10:02:00"
+reviewer: solution-reviewer
+reviewed_artifact: output/solution/solution-note-fail-test.md
+reviewed_metadata: .pmflow/metadata/solution/solution-fail-test.yaml

@@ -1,0 +1,13 @@
+stage: brd
+check_type: self_check
+verdict: pass
+fail_reasons: []
+warnings: []
+open_questions_after_check:
+  - id: Q001
+    question: 10万阈值是否包含10万本身？
+  - id: Q002
+    question: 是否需要支持加急审批通道？
+checked_at: "2026-04-29T10:00:00"
+reviewed_artifact: output/brd/brd-note-20260429T100000.md
+reviewed_metadata: .pmflow/metadata/brd/brd-20260429T100000.yaml
