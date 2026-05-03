@@ -1,9 +1,11 @@
 ---
-description: 方案写作。基于已确认的 BRD 和 UC，产出 solution note。不进入 prototype。
+description: "[legacy] 方案写作。基于已确认的 BRD 和 UC，产出 solution note。不进入 prototype。"
 argument-hint: 可附带补充材料或澄清说明
 ---
 
-# pm-solution
+# pm-solution [legacy]
+
+> **legacy**: 此命令属于旧主链，新项目请使用 `/pm-design` 替代。
 
 触发 skill：`solution-writer`
 

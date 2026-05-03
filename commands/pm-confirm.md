@@ -1,9 +1,11 @@
 ---
-description: PM 显式确认当前阶段产物。不生成新产物，只写回确认状态。
+description: "[legacy] PM 显式确认当前阶段产物。不生成新产物，只写回确认状态。"
 argument-hint: 无参数，直接运行 /pm-confirm
 ---
 
-# pm-confirm
+# pm-confirm [legacy]
+
+> **legacy**: 此命令属于旧主链的 PM ownership gate。新主链中 review 通过后直接建议下一步，不需要单独确认。
 
 触发 skill：`pm-confirm`
 

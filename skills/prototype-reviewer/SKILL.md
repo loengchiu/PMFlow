@@ -9,6 +9,8 @@
 - `profiles/prototype.profile.yaml`（designer 的产物契约，对照检查）
 - `profiles/solution.profile.yaml`（solution 产物契约，对照检查范围边界和字段定义）
 - `schemas/status.schema.yaml`（状态 schema）
+- `references/prototype-writing.md`（判断原型是否像真实页面、标注是否挤压主体）
+- `references/methodology-playbook.md`（判断信息架构和任务流是否落到页面）
 - `output/prototype/` 下最新的 prototype note（人读产物）
 - `.pmflow/metadata/prototype/` 下最新的 prototype metadata（机读产物）
 - 已确认的 solution note（`output/solution/` 下最新文件，路径与 `pm_confirmations` / `approved_baselines` 中 solution 的 `artifact_path` 一致）

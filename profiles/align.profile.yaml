@@ -1,0 +1,92 @@
+# align 阶段产物契约
+# /pm-align 需求对齐
+
+profile:
+  name: align
+  version: "0.1.0"
+  purpose: 需求对齐，确认需求理解、建设类型、范围边界、角色场景、业务方向
+
+stage_contract:
+  gate: reviewer_check
+  check_type: reviewer_check
+  reviewer_required: true
+  reviewer_blocking: true
+  pm_override_allowed: false
+  on_review_fail: 回到 /pm-align 修正
+  on_review_pass: 手动执行 /pm-design
+
+# 人读产物要求
+human_output_requirements:
+  - 需求背景与问题归因
+  - 需求目标（效率 / 合规 / 体验 / 数据 / 流程闭环 / 管理可视化等）
+  - 建设类型判断及依据
+  - 范围边界（本次做什么 / 不做什么 / 待确认什么）
+  - 关键角色与主场景
+  - 用户路径雏形（谁在什么场景下完成什么任务）
+  - 业务方向确认
+  - 已确认内容清单
+  - 待确认问题清单
+  - 冲突和风险
+
+# 机读 metadata 要求
+machine_output_requirements:
+  goals: []
+    # - id: GOAL-001
+    #   name: 目标名称
+    #   category: 效率 | 合规 | 体验 | 数据 | 流程闭环 | 管理可视化
+    #   description: 目标描述
+  build_type: ""  # new_build | iteration | hybrid
+  build_type_evidence: ""
+  scope:
+    in_scope: []
+    out_of_scope: []
+    pending: []
+  roles: []
+    # - id: ROLE-001
+    #   name: 角色名称
+    #   description: 角色描述
+  scenarios: []
+    # - id: SCENE-001
+    #   name: 场景名称
+    #   role: ROLE-001
+    #   task: 任务描述
+    #   context: 场景上下文
+  user_paths: []
+    # - id: PATH-001
+    #   role: ROLE-001
+    #   scenario: SCENE-001
+    #   steps: []
+  business_direction: ""
+  confirmed_items: []
+  open_questions: []
+    # - id: OQ-001
+    #   question: 问题描述
+    #   status: open | resolved | deferred
+  risks: []
+  source_materials: []
+    # 关联到 input 阶段的材料 ID
+
+# review 标准（align-review 使用）
+review_checklist:
+  fail:
+    - 关键材料未登记
+    - 关键材料来源或约束强度不明
+    - 需求目标不清
+    - 建设类型无依据
+    - 范围边界不可用
+    - 主角色或主场景缺失
+    - 材料冲突没有暴露
+    - 把 PM 假设、旧系统现状、参考材料当成需求方确认事实
+    - align 已经越界写成详细设计
+  warn:
+    - 部分角色或场景细节待补充，但主路径已清楚
+    - 建设类型有依据但存在边缘情况
+    - 待确认问题较多但不影响先做 design 草稿
+  pass:
+    - 材料完整登记且来源标记清楚
+    - 需求目标明确
+    - 建设类型有依据
+    - 范围边界可用
+    - 关键角色和主场景完整
+    - 业务方向合理且未越界到详细设计
+    - 多轮新增、覆盖、冲突和已关闭问题处理干净

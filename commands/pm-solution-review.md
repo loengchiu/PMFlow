@@ -1,9 +1,11 @@
 ---
-description: 方案审查。独立审查 solution note，逐项检查 6 个维度。不进入 prototype。
+description: "[legacy] 方案审查。独立审查 solution note，逐项检查 6 个维度。不进入 prototype。"
 argument-hint: 无参数，直接运行 /pm-solution-review
 ---
 
-# pm-solution-review
+# pm-solution-review [legacy]
+
+> **legacy**: 此命令属于旧主链，新项目请使用 `/pm-design-review` 替代。
 
 触发 skill：`solution-reviewer`
 

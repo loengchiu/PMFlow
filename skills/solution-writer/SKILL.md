@@ -1,4 +1,6 @@
-# solution-writer SOP
+# solution-writer SOP [legacy]
+
+> **legacy**: 此 skill 属于旧主链。新项目请使用 `pm-design` skill。
 
 ## 1. 前置读取
 
@@ -12,6 +14,9 @@
 - `profiles/uc.profile.yaml`（前置 UC 契约，理解 UC 输出结构）
 - `schemas/status.schema.yaml`（状态 schema）
 - `templates/solution-note.md`（输出骨架参考）
+- `references/writing-principles.md`（通用人类 PM 写法）
+- `references/solution-writing.md`（方案稿写法参考）
+- `references/methodology-playbook.md`（方法论轻量用法）
 - 已确认的 BRD note（`output/brd/` 下最新文件）
 - 已确认的 BRD metadata（`.pmflow/metadata/brd/` 下最新文件）
 - 已确认的 UC note（`output/uc/` 下最新文件）
@@ -149,6 +154,7 @@
 写入 `output/solution/solution-note-{timestamp}.md`。
 
 - 遵循 `templates/solution-note.md` 骨架
+- 写法参考 `references/solution-writing.md`，不要机械填空
 - 根据实际内容灵活组织，不机械填空
 - 禁止出现：anchor_id、rules_ref、prototype_ref、machine_profile、internal_path
 - 禁止出现："作为 AI""我建议你""根据规则要求"等 AI 痕迹

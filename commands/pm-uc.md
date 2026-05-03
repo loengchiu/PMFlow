@@ -1,9 +1,11 @@
 ---
-description: 用户路径与任务流访谈。梳理用户角色、场景、任务流，产出 UC note。不进入 solution。
+description: "[legacy] 用户路径与任务流访谈。梳理用户角色、场景、任务流，产出 UC note。不进入 solution。"
 argument-hint: 可附带用户角色补充、场景材料或澄清说明
 ---
 
-# pm-uc
+# pm-uc [legacy]
+
+> **legacy**: 此命令属于旧主链，新项目请使用 `/pm-align` 替代。
 
 触发 skill：`uc-interviewer`
 

@@ -3,10 +3,77 @@
 
 profile:
   name: pm-guide
-  version: "0.1.0"
+  version: "0.3.0"
   purpose: 阶段导航和唯一下一步判断的机读契约
 
+# workflow_mode 判定
+# new_main = 新主链，legacy = 旧主链
+# 缺失时按 new-main-chain.md §4 规则推断
+
+# 新主链
 stage_sequence:
+  - uninitialized
+  - input
+  - align
+  - design
+  - wireframe
+  - prd
+  - prototype
+
+stage_gate_types:
+  uninitialized:
+    gate: none
+    next: /pm-input
+
+  input:
+    gate: self_check
+    reviewer_required: false
+    self_check_verdicts: [pass, warn, fail]
+    on_fail: 回到 /pm-input 补充材料
+    on_pass_or_warn: /pm-align
+
+  align:
+    gate: reviewer_check
+    reviewer_required: true
+    reviewer_blocking: true
+    pm_override_allowed: false
+    on_review_fail: 回到 /pm-align 修正
+    on_review_pass_or_warn: /pm-design
+
+  design:
+    gate: reviewer_check
+    reviewer_required: true
+    reviewer_blocking: true
+    pm_override_allowed: false
+    on_review_fail: 回到 /pm-design 修正
+    on_review_pass_or_warn: /pm-wireframe
+
+  wireframe:
+    gate: reviewer_check
+    reviewer_required: true
+    reviewer_blocking: true
+    pm_override_allowed: false
+    on_review_fail: 回到 /pm-wireframe 修正
+    on_review_pass_or_warn: /pm-prd
+
+  prd:
+    gate: reviewer_check
+    reviewer_required: true
+    reviewer_blocking: true
+    pm_override_allowed: false
+    on_review_fail: 回到 /pm-prd 修正
+    on_review_pass_or_warn: /pm-prototype
+
+  prototype:
+    gate: reviewer_check
+    reviewer_required: true
+    reviewer_blocking: true
+    pm_override_allowed: false
+    on_review_fail: 回到 /pm-prototype 修正
+    on_review_pass_or_warn: 主链路完成
+
+# legacy 主链（兼容旧项目）
+legacy_stage_sequence:
   - uninitialized
   - brd
   - uc
@@ -14,72 +81,58 @@ stage_sequence:
   - prototype
   - prd
 
-stage_gate_types:
+legacy_stage_gate_types:
   uninitialized:
     gate: none
     next: /pm-brd
-
   brd:
     gate: interviewer_self_check_then_pm_confirmation
-    reviewer_required: false
-    self_check_verdicts: [pass, warn, fail]
-    on_fail: 回到 /pm-brd 补充
     on_pass_or_warn_pm_confirmed: /pm-uc
-
   uc:
     gate: interviewer_self_check_then_pm_confirmation
-    reviewer_required: false
-    self_check_verdicts: [pass, warn, fail]
-    on_fail: 回到 /pm-uc 补充
     on_pass_or_warn_pm_confirmed: /pm-solution
-
   solution:
     gate: reviewer_check_then_pm_confirmation
-    reviewer_required: true
-    reviewer_blocking: true
-    pm_override_allowed: false
-    on_review_fail: 回到 /pm-solution 修正
     on_review_pass_pm_confirmed: /pm-proto
-
   prototype:
     gate: reviewer_check_then_pm_confirmation
-    reviewer_required: true
-    reviewer_blocking: true
-    pm_override_allowed: false
-    on_review_fail: 回到 /pm-proto 修正
     on_review_pass_pm_confirmed: /pm-prd
-
   prd:
     gate: reviewer_check_then_pm_confirmation
-    reviewer_required: true
-    reviewer_blocking: true
-    pm_override_allowed: false
-    on_review_fail: 回到 /pm-prd 修正
-    on_review_pass_pm_confirmed: 主链路完成，PRD 可归档
+    on_review_pass_pm_confirmed: 主链路完成
 
 # pm-guide 读取 status.yaml 时依赖的字段
+# 新主链只依赖 review_results 和 artifacts，不依赖 pm_confirmations/approved_baselines/next_allowed_commands
 required_status_fields:
   - project_name
   - current_stage
   - artifacts
-  - approved_baselines
   - open_questions
-  - pm_confirmations
   - review_results
-  - next_allowed_commands
+  # 以下字段仅 legacy 主链需要
+  # - approved_baselines
+  # - pm_confirmations
+  # - next_allowed_commands
 
 # pm-guide 的判定优先级（从高到低）
 decision_priority:
-  1: review_results 中的 fail 阻断（最高优先，必须先检查）
+  0: fix_debts 中的 open 债务（最高优先，有未收口变更时推荐 /pm-fix-review）
+  1: review_results 中的 fail 阻断（必须先检查）
   2: artifacts 中的空产出（技能未执行）
   3: review_results 缺失（未完成自检或审查）
-  4: pm_confirmations 中的未确认项（推荐 /pm-confirm）
-  5: pm_confirmations 中已确认（推荐下一阶段命令）
+  4: review pass/warn（推荐下一阶段命令，PM 手动执行）
 
 # pm-guide 禁止推荐跨越的阶段
 forbidden_skips:
+  # 新主链
+  - uninitialized → align（跳过 input）
+  - input 未通过 → design（跳过 align）
+  - align review fail 或未审查 → design
+  - design review fail 或未审查 → wireframe
+  - wireframe review fail 或未审查 → prd
+  - prd review fail 或未审查 → prototype
+  # legacy
   - uninitialized → uc（跳过 brd）
   - brd 未确认 → solution（跳过 uc）
-  - uc 未确认 → solution（跳过确认）
   - solution review fail 或未审查 → prototype
   - prototype review fail 或未审查 → prd

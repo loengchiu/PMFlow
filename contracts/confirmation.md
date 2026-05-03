@@ -1,6 +1,10 @@
-# PM 确认契约
+# PM 确认契约（legacy 主链专用）
 
-所有阶段（含 interviewer）完成后，必须通过显式 `/pm-confirm` 命令完成 PM ownership gate。本文件定义确认的规则、前置条件和写回字段。
+> **适用范围**：仅 legacy 主链（brd -> uc -> solution -> prototype -> prd）。
+> 新主链（input -> align -> design -> wireframe -> prd -> prototype）**不使用** `/pm-confirm`、`pm_confirmations`、`approved_baselines`、`next_allowed_commands`。新主链由 reviewer 输出建议后 PM 手动执行下一命令，writer 执行成功后自行更新 `current_stage`。
+> 详见 `contracts/new-main-chain.md`。
+
+legacy 主链的阶段（含 interviewer）完成后，通过显式 `/pm-confirm` 命令完成 PM ownership gate。本文件定义确认的规则、前置条件和写回字段。
 
 ## 1. 确认流程
 
@@ -72,7 +76,7 @@ next_allowed_commands:
   - <当前阶段命令>  # 允许回到当前阶段补充
 ```
 
-### 4.1 阶段推进与命令映射
+### 4.1 阶段推进与命令映射（legacy 主链）
 
 确认成功后，`current_stage` 推进到下一阶段，同时写入 `next_allowed_commands`：
 
@@ -83,6 +87,8 @@ next_allowed_commands:
 | solution | prototype | [/pm-proto, /pm-solution] |
 | prototype | prd | [/pm-prd, /pm-proto] |
 | prd | prd（不变，主链路终点） | [] |
+
+**新主链不使用 /pm-confirm**。新主链由 reviewer 输出建议后 PM 手动执行下一命令，writer 执行成功后自行更新 `current_stage`。
 
 `current_stage` 推进代表 PM 已确认当前阶段产物，项目进入下一阶段工作。`next_allowed_commands` 的第二项为回归命令，允许 PM 回到当前阶段补充。
 

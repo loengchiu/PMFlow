@@ -1,9 +1,11 @@
 ---
-description: 业务需求访谈。梳理原始需求、背景材料、会后回答，产出 BRD note。不进入 uc。
+description: "[legacy] 业务需求访谈。梳理原始需求、背景材料、会后回答，产出 BRD note。不进入 uc。"
 argument-hint: 可附带需求文本、文档路径或补充说明
 ---
 
-# pm-brd
+# pm-brd [legacy]
+
+> **legacy**: 此命令属于旧主链（brd -> uc -> solution -> prototype -> prd），新项目请使用 `/pm-input` 启动新主链。
 
 触发 skill：`brd-interviewer`
 

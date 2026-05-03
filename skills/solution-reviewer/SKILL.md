@@ -1,4 +1,6 @@
-# solution-reviewer SOP
+# solution-reviewer SOP [legacy]
+
+> **legacy**: 此 skill 属于旧主链。新项目请使用 `pm-design-reviewer` skill。
 
 ## 1. 前置读取
 
@@ -11,6 +13,8 @@
 - `profiles/brd.profile.yaml`（前置 BRD 契约，对照检查范围边界）
 - `profiles/uc.profile.yaml`（前置 UC 契约，对照检查流程覆盖）
 - `schemas/status.schema.yaml`（状态 schema）
+- `references/solution-writing.md`（判断方案稿写法是否自然、字段和流程是否前置）
+- `references/methodology-playbook.md`（判断方法论是否在生成前有效使用）
 - `output/solution/` 下最新的 solution note（人读产物）
 - `.pmflow/metadata/solution/` 下最新的 solution metadata（机读产物）
 - `.pmflow/status.yaml` 中的 `pm_confirmations`（确认 BRD/UC 的 artifact 路径，用于追溯）

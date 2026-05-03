@@ -11,52 +11,83 @@ fields:
     required: true
     description: 项目名称
 
+  workflow_mode:
+    type: enum
+    required: false
+    values:
+      - new_main
+      - legacy
+    description: "工作流模式。new_main = 新主链（input->align->design->wireframe->prd->prototype），legacy = 旧主链（brd->uc->solution->prototype->prd）。缺失时 pm-guide 按 new-main-chain.md §4 规则推断。"
+
   current_stage:
     type: enum
     required: true
     values:
       - uninitialized
+      - input
+      - align
+      - design
+      - wireframe
+      - prd
+      - prototype
+      # legacy 阶段
       - brd
       - uc
       - solution
-      - prototype
-      - prd
-    description: 当前所处阶段
+    description: 当前所处阶段。prototype/prd 时必须结合 workflow_mode 判断新旧链。
 
   next_allowed_commands:
     type: array
     required: false
     items: string
-    description: PM 确认后允许的下一步命令列表（由 /pm-confirm 写入，/pm-guide 读取）
+    description: "[legacy] PM 确认后允许的下一步命令列表（由 /pm-confirm 写入，仅 legacy 主链使用）"
 
   artifacts:
     type: object
     required: true
     properties:
-      brd:
+      input:
         type: array
         items: string
-        description: output/brd/ 下已产出的文件路径列表
-      uc:
+        description: output/input/ 下已产出的文件路径列表
+      align:
         type: array
         items: string
-        description: output/uc/ 下已产出的文件路径列表
-      solution:
+        description: output/align/ 下已产出的文件路径列表
+      design:
         type: array
         items: string
-        description: output/solution/ 下已产出的文件路径列表
-      prototype:
+        description: output/design/ 下已产出的文件路径列表
+      wireframe:
         type: array
         items: string
-        description: output/prototype/ 下已产出的文件路径列表
+        description: output/wireframe/ 下已产出的文件路径列表
       prd:
         type: array
         items: string
         description: output/prd/ 下已产出的文件路径列表
+      prototype:
+        type: array
+        items: string
+        description: output/prototype/ 下已产出的文件路径列表
+      # legacy 阶段产物
+      brd:
+        type: array
+        items: string
+        description: "[legacy] output/brd/ 下已产出的文件路径列表"
+      uc:
+        type: array
+        items: string
+        description: "[legacy] output/uc/ 下已产出的文件路径列表"
+      solution:
+        type: array
+        items: string
+        description: "[legacy] output/solution/ 下已产出的文件路径列表"
 
   approved_baselines:
     type: array
-    required: true
+    required: false
+    description: "[legacy] 仅 legacy 主链使用，新主链不依赖此字段"
     items:
       type: object
       required_fields:
@@ -67,11 +98,12 @@ fields:
         stage:
           type: enum
           values:
+            - prd
+            - prototype
+            # legacy
             - brd
             - uc
             - solution
-            - prototype
-            - prd
         artifact_path:
           type: string
         confirmed_at:
@@ -104,7 +136,8 @@ fields:
 
   pm_confirmations:
     type: array
-    required: true
+    required: false
+    description: "[legacy] 仅 legacy 主链使用，新主链不依赖此字段"
     items:
       type: object
       required_fields:
@@ -117,11 +150,12 @@ fields:
         stage:
           type: enum
           values:
+            - prd
+            - prototype
+            # legacy
             - brd
             - uc
             - solution
-            - prototype
-            - prd
         artifact:
           type: string
           description: 被确认的产物路径
@@ -150,11 +184,16 @@ fields:
         stage:
           type: enum
           values:
+            - input
+            - align
+            - design
+            - wireframe
+            - prd
+            - prototype
+            # legacy
             - brd
             - uc
             - solution
-            - prototype
-            - prd
         check_type:
           type: enum
           values:
@@ -184,3 +223,79 @@ fields:
         reviewed_metadata:
           type: string
           description: 被审查的机读 metadata 路径（review_results 写入时必填）
+
+  fix_debts:
+    type: array
+    required: false
+    description: "/pm-fix 记录的复查债务，由 /pm-fix-review 收口"
+    items:
+      type: object
+      required_fields:
+        - debt_id
+        - change_level
+        - source_stage
+        - description
+        - created_at
+        - status
+      properties:
+        debt_id:
+          type: string
+          description: 债务唯一标识，格式 DEBT-{timestamp}
+        change_level:
+          type: enum
+          values: [L1, L2, L3, L4, L5]
+          description: "变更等级：L1 文案 / L2 局部 / L3 结构 / L4 跨模块 / L5 回 align"
+        source_stage:
+          type: enum
+          values: [input, align, design, wireframe, prd, prototype]
+          description: 变更来源阶段
+        affected_stages:
+          type: array
+          items: string
+          description: 受影响的下游阶段列表
+        description:
+          type: string
+          description: 变更描述
+        affected_objects:
+          type: array
+          items: string
+          description: 受影响的对象 ID 或名称列表
+        needs_stage_review:
+          type: array
+          items: string
+          description: 需要执行阶段 review 的阶段列表
+        created_at:
+          type: string
+          format: iso8601
+        status:
+          type: enum
+          values: [open, closed]
+          description: 债务状态，/pm-fix-review 收口后变为 closed
+        closed_at:
+          type: string
+          format: iso8601
+
+  snapshot_records:
+    type: array
+    required: false
+    description: 快照同步记录，用于 /pm-fix 的 snapshot diff
+    items:
+      type: object
+      required_fields:
+        - stage
+        - snapshot_path
+        - synced_at
+      properties:
+        stage:
+          type: enum
+          values: [input, align, design, wireframe, prd, prototype]
+        snapshot_path:
+          type: string
+          description: ".pmflow/snapshots/<stage>/<stage>.last-synced.md"
+        synced_at:
+          type: string
+          format: iso8601
+        synced_by:
+          type: enum
+          values: [writer, fix, fix-review, stage-review]
+          description: 快照更新触发来源

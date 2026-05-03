@@ -4,11 +4,11 @@
 
 所有门禁使用三级判定：
 
-| 级别 | 含义 | 后续行为 |
-|---|---|---|
-| `pass` | 满足进入下一阶段的条件 | PM 确认后可进入下一阶段 |
-| `warn` | 存在未确认项或风险，但不影响进入下一阶段做初步工作 | PM 知情确认后可继续，风险项记录到 open_questions |
-| `fail` | 存在阻断性缺陷，不具备进入下一阶段的基本条件 | 必须回到当前阶段补充/修正，PM 不可越权推进 |
+| 级别 | 含义 | 新主链后续行为 | legacy 主链后续行为 |
+|---|---|---|---|
+| `pass` | 满足进入下一阶段的条件 | reviewer/writer 建议下一步命令并停止，PM 手动执行 | PM 执行 /pm-confirm 后进入下一阶段 |
+| `warn` | 存在未确认项或风险，但不阻断 | 同 pass，风险项记录到 open_questions | PM 知情确认后可继续，风险项记录到 open_questions |
+| `fail` | 存在阻断性缺陷 | 必须回到当前阶段修正，PM 不可越权推进 | 必须回到当前阶段修正，PM 不可越权推进 |
 
 ## 2. interviewer 自检门禁（brd、uc）
 
@@ -61,6 +61,10 @@ reviewed_metadata: ""   # 必填：本次生成的机读 metadata 路径
 
 solution、prototype、prd 阶段各有一个独立的 reviewer skill。
 
+新主链 reviewer 门禁（align、design）：
+
+align、design 阶段各有一个独立的 reviewer skill。规则与 solution/prototype/prd 的 reviewer 门禁一致。
+
 ### 3.1 reviewer 独立检查
 
 reviewer 必须：
@@ -90,14 +94,35 @@ reviewer 不得：
 
 **pass（通过）**：全部 checks 满足
 
-## 4. PM ownership gate（所有阶段）
+## 4. PM ownership gate
 
-每个阶段（含 interviewer）完成后，必须经过 PM ownership gate：
+### 4.1 新主链（input -> align -> design -> wireframe -> prd -> prototype）
+
+新主链不使用 `/pm-confirm`。阶段完成后：
 
 - 阶段产物已落盘（`output/` 和 `.pmflow/` 均有对应文件）
 - reviewer 或自检已给出 verdict
-- **PM 已阅读人读产物**
-- **PM 显式执行 `/pm-confirm` 完成确认**（推进 `current_stage`，写回 `pm_confirmations`、`approved_baselines`、`next_allowed_commands`）
+- reviewer 或 writer 输出下一步建议并**停止**
+- PM 阅读人读产物后**手动执行下一命令**
+
+writer 执行成功后自行更新 `current_stage`。reviewer 不修改 `current_stage`。
+
+新主链禁止行为：
+
+- review 通过后自动执行下一阶段命令
+- 修改下游产物后自动同步所有其他产物
+- 用户要求"顺便继续"时跨阶段执行
+- 用旧 review 放行新产物
+- 在未做 impact analysis 时直接改文件
+
+### 4.2 legacy 主链（brd -> uc -> solution -> prototype -> prd）
+
+legacy 主链使用 `/pm-confirm` 完成 PM ownership gate：
+
+- 阶段产物已落盘
+- reviewer 或自检已给出 verdict
+- PM 已阅读人读产物
+- PM 显式执行 `/pm-confirm` 完成确认（推进 `current_stage`，写回 `pm_confirmations`、`approved_baselines`、`next_allowed_commands`）
 - 下一步只提示命令名，不代执行
 
 确认由 `/pm-confirm` 统一处理，规则见 `contracts/confirmation.md`。
@@ -132,9 +157,16 @@ check_type:
 
 current_stage:
   - uninitialized
+  - input
+  - align
+  - design
+  - wireframe
+  - prd
+  - prototype
+  # legacy
   - brd
   - uc
   - solution
-  - prototype
-  - prd
+  # 新主链 writer 执行成功后更新 current_stage；reviewer 不推进 current_stage
+  # pm-guide 可结合 current_stage、artifacts、review_results 判断进度
 ```

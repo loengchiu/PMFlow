@@ -1,0 +1,125 @@
+# design 阶段产物契约
+# /pm-design 详细设计
+
+profile:
+  name: design
+  version: "0.1.0"
+  purpose: 详细设计建设，基于已通过 align-review 的对齐基线构建功能、页面、字段、流程、状态、权限、规则
+
+stage_contract:
+  gate: reviewer_check
+  check_type: reviewer_check
+  reviewer_required: true
+  reviewer_blocking: true
+  pm_override_allowed: false
+  on_review_fail: 回到 /pm-design 修正
+  on_review_pass: 手动执行 /pm-wireframe
+
+# 人读产物要求（PM 主阅读入口：output/design/design.md）
+human_output_requirements:
+  - 功能清单
+  - 页面清单
+  - 数据字典
+  - 系统流程
+  - 角色权限初稿
+  - 状态流转
+  - 关键业务规则
+  - 待确认问题
+
+# 机读 metadata 要求（分片存储）
+machine_output_requirements:
+  # 索引文件：.pmflow/metadata/design/index.yaml
+  index:
+    modules: []
+    pages: []
+    entities: []
+    flows: []
+    rules: []
+
+  # 分片文件：.pmflow/metadata/design/<type>/
+  modules: []
+    # - id: MOD-001
+    #   name: 模块名称
+    #   description: 模块职责
+    #   derived_from: [GOAL-xxx, SCENE-xxx]
+  pages: []
+    # - id: PAGE-001
+    #   name: 页面名称
+    #   type: list | form | detail | dashboard
+    #   module: MOD-001
+    #   derived_from: [PATH-xxx, SCENE-xxx]
+  entities: []
+    # - id: ENTITY-001
+    #   name: 实体名称
+    #   fields: [FIELD-001, FIELD-002]
+    #   derived_from: [SCENE-xxx]
+  fields: []
+    # - id: FIELD-001
+    #   name: 字段名称
+    #   type: string | number | enum | date | boolean | ...
+    #   entity: ENTITY-001
+    #   required: true | false
+    #   validation: 校验规则
+    #   derived_from: [SCENE-xxx]
+  flows: []
+    # - id: FLOW-001
+    #   name: 流程名称
+    #   steps: []
+    #   derived_from: [PATH-xxx]
+  states: []
+    # - id: STATE-001
+    #   name: 状态名称
+    #   entity: ENTITY-001
+    #   transitions: []
+  rules: []
+    # - id: RULE-001
+    #   name: 规则名称
+    #   description: 规则描述
+    #   scope: 模块 | 页面 | 字段 | 流程
+    #   derived_from: [SCENE-xxx]
+  permissions: []
+    # - id: PERM-001
+    #   role: ROLE-xxx
+    #   module: MOD-xxx
+    #   actions: [view, create, edit, delete, approve, ...]
+    #   derived_from: [ROLE-xxx]
+
+  # 关系文件：.pmflow/metadata/design/relations.yaml
+  relations: []
+    # - id: REL-001
+    #   type: derived_from | appears_in | validated_by | depends_on | supersedes
+    #   from: FIELD-xxx
+    #   to: ENTITY-xxx
+
+# 上下文防爆规则
+context_control:
+  human_read_entry: output/design/design.md
+  ai_generation: 分片生成，不允许一次性长文生成
+  ai_reading: 先读 metadata index，再按任务读取相关分片
+  file_limits:
+    index: 300 行
+    single_topic_metadata: 500 行
+    single_detail_metadata: 200 行
+
+# review 标准（design-review 使用）
+review_checklist:
+  fail:
+    - design 阶段重新判断建设类型
+    - design 阶段重新解释原始材料
+    - 新材料悄悄并入设计
+    - 扩大或改变 align 已确认范围
+    - 发现前置冲突后继续生成
+    - 功能/页面/字段/流程缺少 align 来源追溯
+    - 关键对象缺少稳定 ID
+    - relations 断裂或指向不存在的对象
+  warn:
+    - 部分边缘场景覆盖不完整
+    - 部分规则或权限初稿待细化
+    - metadata 分片不完整但核心结构正确
+  pass:
+    - 基于 align-review 基线建设
+    - 结构化设计建设法完整体现
+    - 所有关键对象有稳定 ID 和来源追溯
+    - relations 完整且一致
+    - 人读产物无机读字段泄漏
+    - metadata 分片符合行数限制

@@ -1,4 +1,6 @@
-# uc-interviewer SOP
+# uc-interviewer SOP [legacy]
+
+> **legacy**: 此 skill 属于旧主链。新项目请使用 `pm-align` skill。
 
 ## 1. 前置读取
 

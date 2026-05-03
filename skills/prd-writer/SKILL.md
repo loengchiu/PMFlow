@@ -1,4 +1,6 @@
-# prd-writer SOP
+# prd-writer SOP [legacy]
+
+> **适用范围**：仅 legacy 主链（brd→uc→solution→prototype→prd）。新主链 PRD 阶段尚未实现，由 `commands/pm-prd.md` 分流到 placeholder。
 
 ## 1. 前置读取
 
@@ -12,6 +14,9 @@
 - `profiles/brd.profile.yaml`（BRD 产物契约，理解业务目标）
 - `schemas/status.schema.yaml`（状态 schema）
 - `templates/prd.md`（输出骨架参考）
+- `references/writing-principles.md`（通用人类 PM 写法）
+- `references/prd-writing.md`（PRD 写法参考）
+- `references/methodology-playbook.md`（PRD 生成前推导用）
 - 已确认的 prototype note（路径来自 `pm_confirmations` 中 prototype 的 `artifact` / `approved_baselines` 中 prototype 的 `artifact_path`，不得仅取目录最新文件）
 - 已确认的 prototype metadata（路径来自 `review_results` 中 prototype review 的 `reviewed_metadata`）
 - 已确认的 solution note（路径来自 `pm_confirmations` 中 solution 的 `artifact` / `approved_baselines` 中 solution 的 `artifact_path`）
@@ -161,6 +166,7 @@
 写入 `output/prd/prd-{timestamp}.md`。
 
 - 遵循 `templates/prd.md` 骨架
+- 写法参考 `references/prd-writing.md`，PRD 必须可独立归档
 - 根据实际内容灵活组织，不机械填空
 - 禁止出现：anchor_id、rules_ref、prototype_ref、machine_profile、internal_path、prd_ref
 - 禁止出现："作为 AI""我建议你""根据规则要求"等 AI 痕迹

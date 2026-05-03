@@ -9,6 +9,9 @@
 - `profiles/solution.profile.yaml`（solution 产物契约，理解方案结构）
 - `schemas/status.schema.yaml`（状态 schema）
 - `templates/prototype-note.md`（输出骨架参考）
+- `references/writing-principles.md`（通用人类 PM 写法）
+- `references/prototype-writing.md`（原型写法参考）
+- `references/methodology-playbook.md`（用户路径、任务流、信息架构用法）
 - 已确认的 solution note（`output/solution/` 下最新文件）
 - 已确认的 solution metadata（`.pmflow/metadata/solution/` 下最新文件）
 
@@ -125,6 +128,7 @@
 写入 `output/prototype/prototype-note-{timestamp}.md`。
 
 - 遵循 `templates/prototype-note.md` 骨架
+- 写法参考 `references/prototype-writing.md`，页面本体优先，标注只做辅助
 - 根据实际内容灵活组织，不机械填空
 - 禁止出现：anchor_id、rules_ref、prototype_ref、machine_profile、internal_path、prd_ref
 - 禁止出现："作为 AI""我建议你""根据规则要求"等 AI 痕迹

@@ -1,4 +1,6 @@
-# prd-reviewer SOP
+# prd-reviewer SOP [legacy]
+
+> **适用范围**：仅 legacy 主链（brd→uc→solution→prototype→prd）。新主链 PRD review 尚未实现，由 `commands/pm-prd-review.md` 分流到 placeholder。
 
 ## 1. 前置读取
 
@@ -12,6 +14,8 @@
 - `profiles/uc.profile.yaml`（UC 产物契约，对照检查用户任务覆盖）
 - `profiles/brd.profile.yaml`（BRD 产物契约，对照检查业务目标覆盖）
 - `schemas/status.schema.yaml`（状态 schema）
+- `references/prd-writing.md`（判断 PRD 文风、归档质量和字段落地）
+- `references/writing-principles.md`（判断是否存在模板感或 AI 味）
 - `output/prd/` 下最新的 PRD 文档（人读产物）
 - `.pmflow/metadata/prd/` 下最新的 PRD metadata（机读产物）
 - 已确认的 prototype note（路径来自 `pm_confirmations` 中 prototype 的 `artifact` / `approved_baselines` 中 prototype 的 `artifact_path`，不得仅取目录最新文件）

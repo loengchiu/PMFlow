@@ -1,0 +1,70 @@
+# input 阶段产物契约
+# /pm-input 材料盘点
+
+profile:
+  name: input
+  version: "0.1.0"
+  purpose: 材料盘点，识别材料来源、性质、缺口和冲突
+
+stage_contract:
+  gate: self_check
+  check_type: self_check
+  verdicts: [pass, warn, fail]
+  on_fail: 补充材料后重新 /pm-input
+  on_pass_or_warn: 手动执行 /pm-align
+
+# 人读产物要求
+human_output_requirements:
+  - 材料清单（已收到的材料逐项列出）
+  - 材料来源（需求方确认 / PM 假设 / 旧系统现状 / 历史文档 / 参考材料）
+  - 材料性质（原话 / 字段表 / 流程图 / 截图 / 会议纪要 / 旧系统资料 / 制度文件）
+  - 约束强度（强约束 / 参考约束 / 待确认 / 范围外）
+  - 需求一句话摘要
+  - 建设类型初判（新建 / 优化迭代 / 混合 / 待确认）
+  - 缺口与冲突清单
+  - 待补充问题清单（可问需求方的问题）
+  - 是否可以进入 /pm-align
+
+# 机读 metadata 要求
+machine_output_requirements:
+  materials: []
+    # - id: MAT-001
+    #   name: 材料名称
+    #   source: 需求方确认 | PM 假设 | 旧系统现状 | 历史文档 | 参考材料
+    #   type: 原话 | 字段表 | 流程图 | 截图 | 会议纪要 | 旧系统资料 | 制度文件
+    #   constraint: 强约束 | 参考约束 | 待确认 | 范围外
+    #   content_summary: 内容摘要
+  requirement_summary: ""
+  build_type_guess: ""  # new_build | iteration | hybrid | 待确认
+  gaps: []
+    # - id: GAP-001
+    #   description: 缺口描述
+    #   related_materials: []
+    #   question_to_ask: 可问需求方的问题
+  conflicts: []
+    # - id: CONFLICT-001
+    #   description: 冲突描述
+    #   materials_involved: []
+  extracted_clues:
+    goals: []
+    roles: []
+    scenarios: []
+    field_clues: []
+    flow_clues: []
+    rule_clues: []
+    boundary_clues: []
+
+# self_check 标准
+self_check:
+  fail:
+    - 基本需求对象不清
+    - 需求目标不清
+    - 材料来源完全不明
+  warn:
+    - 材料不完整，但足够形成对齐问题
+    - 部分材料来源或约束强度待确认
+  pass:
+    - 材料清单完整登记
+    - 关键材料标记来源和约束强度
+    - 缺口和冲突已识别
+    - 需求一句话摘要清楚

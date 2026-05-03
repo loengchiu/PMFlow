@@ -1,0 +1,118 @@
+# wireframe 阶段产物契约
+# /pm-wireframe 线框图
+
+profile:
+  name: wireframe
+  version: "0.1.0"
+  purpose: 基于 design 产物生成线框图，将设计图形化，暴露页面流转和信息承载问题
+
+stage_contract:
+  gate: reviewer_check
+  check_type: reviewer_check
+  reviewer_required: true
+  reviewer_blocking: true
+  pm_override_allowed: false
+  on_review_fail: 回到 /pm-wireframe 修正
+  on_review_pass: 手动执行 /pm-prd
+
+# 人读产物要求（PM 主阅读入口：output/wireframe/wireframe.md）
+human_output_requirements:
+  - 页面清单（逐页名称、类型、所属模块）
+  - 页面间导航关系（从哪来、到哪去）
+  - 每页字段布局（字段分组、排列顺序、展示/编辑状态）
+  - 每页操作入口（按钮、链接、触发条件）
+  - 状态展示区域（当前状态、状态流转提示）
+  - 异常提示位置（校验错误、空状态、加载状态）
+
+# 机读 metadata 要求
+machine_output_requirements:
+  # 索引文件：.pmflow/metadata/wireframe/index.yaml
+  index:
+    pages: []
+    navigation: []
+
+  # 页面清单
+  pages: []
+    # - id: WF-PAGE-001
+    #   name: 页面名称
+    #   type: list | form | detail | dashboard
+    #   module: MOD-001
+    #   design_page_ref: PAGE-001  # 来源 design 页面 ID
+    #   sections:
+    #     - name: 区域名称
+    #       type: field_group | action_bar | status_display | exception_zone
+    #       fields: [FIELD-001, FIELD-002]
+    #       operations: [OP-001]
+
+  # 页面间导航
+  navigation: []
+    # - id: WF-NAV-001
+    #   from: WF-PAGE-001
+    #   to: WF-PAGE-002
+    #   trigger: 操作名称或条件
+    #   flow_ref: FLOW-001  # 来源 design 流程 ID
+
+  # 字段布局
+  field_layouts: []
+    # - id: WF-FL-001
+    #   page: WF-PAGE-001
+    #   field: FIELD-001
+    #   display: edit | view | hidden
+    #   group: 分组名称
+    #   order: 1
+    #   design_field_ref: FIELD-001
+
+  # 操作入口
+  operation_entries: []
+    # - id: WF-OP-001
+    #   page: WF-PAGE-001
+    #   name: 操作名称
+    #   type: button | link | auto
+    #   trigger_condition: 触发条件
+    #   target_page: WF-PAGE-002
+    #   design_flow_ref: FLOW-001
+
+  # 状态展示区域
+  state_zones: []
+    # - id: WF-SZ-001
+    #   page: WF-PAGE-001
+    #   entity: ENTITY-001
+    #   states: [STATE-001, STATE-002]
+    #   display_position: 页面位置
+
+  # 异常提示
+  exception_hints: []
+    # - id: WF-EH-001
+    #   page: WF-PAGE-001
+    #   trigger: 校验失败 | 权限不足 | 网络异常 | 空数据
+    #   display: 提示方式
+    #   design_rule_ref: RULE-001
+
+# 上下文防爆规则
+context_control:
+  human_read_entry: output/wireframe/wireframe.md
+  ai_generation: 逐页生成，不允许一次性长文生成
+  ai_reading: 先读 metadata index，再按页面读取相关分片
+  file_limits:
+    index: 200 行
+    single_page_metadata: 300 行
+
+# review 标准（wireframe-review 使用）
+review_checklist:
+  fail:
+    - 线框图超出 design 确认范围
+    - 新增 design 中不存在的页面或模块
+    - design 中的核心页面在线框图中缺失
+    - 主流程页面间导航断裂（无法从入口走通到终点）
+    - 关键操作在线框图中无落点
+    - 关键状态无展示区域
+  warn:
+    - 部分边缘页面的字段布局待细化
+    - 部分异常提示位置待补充
+    - 非核心页面的导航关系待补充
+  pass:
+    - design 中所有页面在线框图中有落点
+    - 主流程页面导航连贯可走通
+    - 关键字段、操作、状态均有可见表达
+    - 人读产物无机读字段泄漏
+    - metadata 符合行数限制

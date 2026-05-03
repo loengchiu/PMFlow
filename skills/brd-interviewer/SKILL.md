@@ -1,4 +1,6 @@
-# brd-interviewer SOP
+# brd-interviewer SOP [legacy]
+
+> **legacy**: 此 skill 属于旧主链（brd -> uc -> solution -> prototype -> prd）。新项目请使用 `pm-input` skill。
 
 ## 1. 前置读取
 
