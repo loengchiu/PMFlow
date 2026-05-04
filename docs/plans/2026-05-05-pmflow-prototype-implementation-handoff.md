@@ -49,7 +49,7 @@ profiles/prd-review-new-main.profile.yaml
 scripts/pmflow-new-main-e2e-smoke.py
 ```
 
-同时读取当前 prototype placeholder：
+同时读取当前 prototype 命令与 skill 文件：
 
 ```text
 commands/pm-prototype.md
