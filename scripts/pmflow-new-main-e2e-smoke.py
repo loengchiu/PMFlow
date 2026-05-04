@@ -284,6 +284,47 @@ def simulate_prd(fixture_dir, t):
     make_file(fixture_dir / '.pmflow/snapshots/prd/prd.last-synced.md', '# 快照')
 
 
+def simulate_prototype(fixture_dir, t):
+    """模拟 /pm-prototype 执行：生成原型产物，current_stage 更新为 prototype。"""
+    status_path = fixture_dir / '.pmflow' / 'status.yaml'
+    with open(status_path, 'r', encoding='utf-8') as f:
+        s = yaml.safe_load(f)
+    s['current_stage'] = 'prototype'
+    s['artifacts']['prototype'] = ['output/prototype/index.html']
+    write_yaml(status_path, s)
+    make_file(fixture_dir / 'output/prototype/index.html', '<html><body>原型</body></html>')
+    make_file(fixture_dir / '.pmflow/metadata/prototype/index.yaml',
+              ('source_prd_artifact: output/prd/prd.md\n'
+               'pages:\n'
+               '  - page_id: PROTO-PAGE-001\n'
+               '    page_name: 测试原型页面\n'
+               '    page_type: list\n'
+               '    prd_page_ref: PRD-PAGE-001\n'
+               'flows:\n'
+               '  - id: FLOW-001\n'
+               '    name: 测试主流程\n'
+               '    steps:\n'
+               '      - page: PROTO-PAGE-001'))
+    make_file(fixture_dir / '.pmflow/snapshots/prototype/prototype.last-synced.html',
+              '<html><body>原型</body></html>')
+
+
+def simulate_prototype_review(fixture_dir, t, verdict='pass'):
+    """模拟 /pm-prototype-review 执行：写入 review_results。"""
+    status_path = fixture_dir / '.pmflow' / 'status.yaml'
+    with open(status_path, 'r', encoding='utf-8') as f:
+        s = yaml.safe_load(f)
+    s['review_results'].append({
+        'stage': 'prototype', 'check_type': 'reviewer_check', 'verdict': verdict,
+        'fail_reasons': [] if verdict != 'fail' else ['核心页面缺失'],
+        'warnings': [] if verdict == 'pass' else ['UI 细节略粗糙'],
+        'checked_at': t, 'reviewer': 'pm-prototype-reviewer',
+        'reviewed_artifact': 'output/prototype/index.html',
+        'reviewed_metadata': '.pmflow/metadata/prototype/index.yaml',
+    })
+    write_yaml(status_path, s)
+
+
 def simulate_prd_review(fixture_dir, t, verdict='pass'):
     """模拟 /pm-prd-review 执行：写入 review_results。"""
     status_path = fixture_dir / '.pmflow' / 'status.yaml'
@@ -1407,6 +1448,425 @@ def test35_prd_review_fail():
 
 
 # ============================================================
+# TEST 36: /pm-prototype command new_main 不再 placeholder
+# ============================================================
+def test36_pm_prototype_command_not_placeholder():
+    print(f'\n{CYAN}=== TEST 36: /pm-prototype command new_main 不再 placeholder ==={RESET}')
+    repo_root = Path(__file__).resolve().parent.parent
+
+    cmd_path = repo_root / 'commands' / 'pm-prototype.md'
+    assert_that('proto-cmd', 'commands/pm-prototype.md 存在', cmd_path.exists())
+    if cmd_path.exists():
+        text = cmd_path.read_text(encoding='utf-8')
+        assert_that('proto-cmd', 'new_main 触发 pm-prototype skill',
+                    'pm-prototype' in text)
+        assert_that('proto-cmd', '不再包含"尚未实现"placeholder',
+                    '尚未实现' not in text and 'placeholder' not in text.lower())
+
+
+# ============================================================
+# TEST 37: /pm-prototype-review command new_main 不再 placeholder
+# ============================================================
+def test37_pm_prototype_review_command_not_placeholder():
+    print(f'\n{CYAN}=== TEST 37: /pm-prototype-review command new_main 不再 placeholder ==={RESET}')
+    repo_root = Path(__file__).resolve().parent.parent
+
+    cmd_path = repo_root / 'commands' / 'pm-prototype-review.md'
+    assert_that('proto-review-cmd', 'commands/pm-prototype-review.md 存在', cmd_path.exists())
+    if cmd_path.exists():
+        text = cmd_path.read_text(encoding='utf-8')
+        assert_that('proto-review-cmd', 'new_main 触发 pm-prototype-reviewer skill',
+                    'pm-prototype-reviewer' in text)
+        assert_that('proto-review-cmd', '不再包含"尚未实现"placeholder',
+                    '尚未实现' not in text and 'placeholder' not in text.lower())
+
+
+# ============================================================
+# TEST 38: skills/pm-prototype/SKILL.md 内容校验
+# ============================================================
+def test38_pm_prototype_skill_content():
+    print(f'\n{CYAN}=== TEST 38: skills/pm-prototype/SKILL.md 内容校验 ==={RESET}')
+    repo_root = Path(__file__).resolve().parent.parent
+
+    skill_path = repo_root / 'skills' / 'pm-prototype' / 'SKILL.md'
+    assert_that('proto-skill', 'SKILL.md 存在', skill_path.exists())
+    if skill_path.exists():
+        text = skill_path.read_text(encoding='utf-8')
+        assert_that('proto-skill', 'triggers 包含 /pm-prototype',
+                    '/pm-prototype' in text)
+        assert_that('proto-skill', '包含 workflow_mode',
+                    'workflow_mode' in text)
+        assert_that('proto-skill', '包含 new_main',
+                    'new_main' in text)
+        assert_that('proto-skill', '包含 prd reviewer_check',
+                    'reviewer_check' in text and 'prd' in text.lower())
+        assert_that('proto-skill', '输出 index.html',
+                    'index.html' in text)
+        assert_that('proto-skill', '输出 metadata',
+                    'metadata' in text)
+        assert_that('proto-skill', '输出 snapshot',
+                    'snapshot' in text)
+        assert_that('proto-skill', '更新 status',
+                    'status' in text.lower())
+        # 检查禁止行为部分包含这些规则
+        assert_that('proto-skill', '包含禁止 /pm-confirm 规则',
+                    '不得提示 /pm-confirm' in text or '/pm-confirm' not in text)
+        assert_that('proto-skill', '包含禁止 pm_confirmations 规则',
+                    '不得写 pm_confirmations' in text or 'pm_confirmations' not in text)
+        assert_that('proto-skill', '包含 references/prototype-ui-style.md',
+                    'prototype-ui-style.md' in text)
+        assert_that('proto-skill', '包含页面结构来自 PRD/wireframe',
+                    'PRD' in text and 'wireframe' in text)
+        assert_that('proto-skill', '包含组件按页面类型选择',
+                    '页面类型' in text or 'page_type' in text)
+        assert_that('proto-skill', 'flows.steps.page 示例为 PROTO-PAGE-001',
+                    'page: PROTO-PAGE-001' in text)
+
+
+# ============================================================
+# TEST 39: skills/pm-prototype-reviewer/SKILL.md 内容校验
+# ============================================================
+def test39_pm_prototype_reviewer_skill_content():
+    print(f'\n{CYAN}=== TEST 39: skills/pm-prototype-reviewer/SKILL.md 内容校验 ==={RESET}')
+    repo_root = Path(__file__).resolve().parent.parent
+
+    skill_path = repo_root / 'skills' / 'pm-prototype-reviewer' / 'SKILL.md'
+    assert_that('proto-review-skill', 'SKILL.md 存在', skill_path.exists())
+    if skill_path.exists():
+        text = skill_path.read_text(encoding='utf-8')
+        assert_that('proto-review-skill', 'triggers 包含 /pm-prototype-review',
+                    '/pm-prototype-review' in text)
+        assert_that('proto-review-skill', '包含 review_results 双写规则',
+                    'review_results' in text)
+        assert_that('proto-review-skill', '包含 reviewed_artifact',
+                    'reviewed_artifact' in text)
+        assert_that('proto-review-skill', '包含 reviewed_metadata',
+                    'reviewed_metadata' in text)
+        assert_that('proto-review-skill', '不修改 current_stage',
+                    'current_stage' in text)
+        assert_that('proto-review-skill', '包含可打开性检查',
+                    '可打开性' in text or 'openability' in text)
+        assert_that('proto-review-skill', '包含页面覆盖检查',
+                    '页面覆盖' in text)
+        assert_that('proto-review-skill', '包含流程走通检查',
+                    '流程走通' in text)
+        assert_that('proto-review-skill', '§2 前置非空',
+                    '## 2.' in text)
+        assert_that('proto-review-skill', '§2 包含 artifacts.prototype 检查',
+                    'artifacts.prototype' in text or 'prototype' in text)
+        assert_that('proto-review-skill', '§2 包含 index.yaml 存在检查',
+                    'index.yaml' in text)
+        assert_that('proto-review-skill', '不包含 prototype.last-synced.html 更新规则',
+                    'prototype.last-synced.html' not in text)
+        assert_that('proto-review-skill', '不包含 snapshot_records 写入规则',
+                    'snapshot_records' not in text)
+
+
+# ============================================================
+# TEST 40: prd-review pass 后 guide 推荐 /pm-prototype
+# ============================================================
+def test40_prd_review_pass_to_prototype():
+    print(f'\n{CYAN}=== TEST 40: prd-review pass -> guide 推荐 /pm-prototype ==={RESET}')
+    d = Path(tempfile.mkdtemp(prefix='pmflow-e2e-'))
+    t = '2026-05-05T10:00:00'
+    simulate_input(d, t)
+    simulate_align(d, t)
+    simulate_align_review(d, t)
+    simulate_design(d, t)
+    simulate_design_review(d, t)
+    simulate_wireframe(d, t)
+    simulate_wireframe_review(d, t)
+    simulate_prd(d, t)
+    simulate_prd_review(d, t, verdict='pass')
+
+    recommend = pm_guide_recommend(d)
+    assert_that('prd-pass->proto', 'pm-guide 推荐 /pm-prototype',
+                recommend == '/pm-prototype',
+                f'实际推荐: {recommend}')
+    assert_no_pm_confirm_in_text(recommend, 'prd-pass->proto')
+
+    s = read_status(d)
+    assert_no_legacy_fields(s, 'prd-pass->proto')
+    shutil.rmtree(d, ignore_errors=True)
+
+
+# ============================================================
+# TEST 41: /pm-prototype 后 artifacts.prototype 存在
+# ============================================================
+def test41_prototype_artifacts():
+    print(f'\n{CYAN}=== TEST 41: /pm-prototype 后 artifacts.prototype 存在 ==={RESET}')
+    d = Path(tempfile.mkdtemp(prefix='pmflow-e2e-'))
+    t = '2026-05-05T10:00:00'
+    simulate_input(d, t)
+    simulate_align(d, t)
+    simulate_align_review(d, t)
+    simulate_design(d, t)
+    simulate_design_review(d, t)
+    simulate_wireframe(d, t)
+    simulate_wireframe_review(d, t)
+    simulate_prd(d, t)
+    simulate_prd_review(d, t)
+    simulate_prototype(d, t)
+    s = read_status(d)
+
+    assert_that('proto-artifacts', 'current_stage = prototype',
+                s.get('current_stage') == 'prototype',
+                f'实际: {s.get("current_stage")}')
+    assert_that('proto-artifacts', 'artifacts.prototype 包含 index.html',
+                any('index.html' in p for p in s.get('artifacts', {}).get('prototype', [])))
+    assert_that('proto-artifacts', 'output/prototype/index.html 存在于磁盘',
+                (d / 'output/prototype/index.html').exists())
+    assert_that('proto-artifacts', '.pmflow/metadata/prototype/index.yaml 存在',
+                (d / '.pmflow/metadata/prototype/index.yaml').exists())
+    assert_that('proto-artifacts', '.pmflow/snapshots/prototype/prototype.last-synced.html 存在',
+                (d / '.pmflow/snapshots/prototype/prototype.last-synced.html').exists())
+
+    # 验证 metadata mock 包含 PROTO-PAGE-001
+    meta_raw = (d / '.pmflow/metadata/prototype/index.yaml').read_text(encoding='utf-8')
+    assert_that('proto-artifacts', 'prototype metadata 包含 PROTO-PAGE-001',
+                'PROTO-PAGE-001' in meta_raw,
+                f'metadata 不包含 PROTO-PAGE-001: {meta_raw[:200]}')
+
+    assert_no_legacy_fields(s, 'proto-artifacts')
+
+    recommend = pm_guide_recommend(d)
+    assert_that('proto-artifacts', 'pm-guide 推荐 /pm-prototype-review',
+                recommend == '/pm-prototype-review',
+                f'实际推荐: {recommend}')
+
+    shutil.rmtree(d, ignore_errors=True)
+
+
+# ============================================================
+# TEST 42: prototype-review pass 后 guide 输出主链路完成
+# ============================================================
+def test42_prototype_review_pass():
+    print(f'\n{CYAN}=== TEST 42: prototype-review pass -> 主链路完成 ==={RESET}')
+    d = Path(tempfile.mkdtemp(prefix='pmflow-e2e-'))
+    t = '2026-05-05T10:00:00'
+    simulate_input(d, t)
+    simulate_align(d, t)
+    simulate_align_review(d, t)
+    simulate_design(d, t)
+    simulate_design_review(d, t)
+    simulate_wireframe(d, t)
+    simulate_wireframe_review(d, t)
+    simulate_prd(d, t)
+    simulate_prd_review(d, t)
+    simulate_prototype(d, t)
+    simulate_prototype_review(d, t, verdict='pass')
+
+    recommend = pm_guide_recommend(d)
+    assert_that('proto-pass', 'pm-guide 输出主链路完成',
+                '主链路完成' in recommend,
+                f'实际推荐: {recommend}')
+    assert_no_pm_confirm_in_text(recommend, 'proto-pass')
+
+    s = read_status(d)
+    assert_no_legacy_fields(s, 'proto-pass')
+    shutil.rmtree(d, ignore_errors=True)
+
+
+# ============================================================
+# TEST 43: prototype-review warn 后 guide 输出主链路完成
+# ============================================================
+def test43_prototype_review_warn():
+    print(f'\n{CYAN}=== TEST 43: prototype-review warn -> 主链路完成 ==={RESET}')
+    d = Path(tempfile.mkdtemp(prefix='pmflow-e2e-'))
+    t = '2026-05-05T10:00:00'
+    simulate_input(d, t)
+    simulate_align(d, t)
+    simulate_align_review(d, t)
+    simulate_design(d, t)
+    simulate_design_review(d, t)
+    simulate_wireframe(d, t)
+    simulate_wireframe_review(d, t)
+    simulate_prd(d, t)
+    simulate_prd_review(d, t)
+    simulate_prototype(d, t)
+    simulate_prototype_review(d, t, verdict='warn')
+
+    recommend = pm_guide_recommend(d)
+    assert_that('proto-warn', 'pm-guide 输出主链路完成（warn 不阻断）',
+                '主链路完成' in recommend,
+                f'实际推荐: {recommend}')
+
+    shutil.rmtree(d, ignore_errors=True)
+
+
+# ============================================================
+# TEST 44: prototype-review fail 后 guide 推荐 /pm-prototype
+# ============================================================
+def test44_prototype_review_fail():
+    print(f'\n{CYAN}=== TEST 44: prototype-review fail -> 回到 /pm-prototype ==={RESET}')
+    d = Path(tempfile.mkdtemp(prefix='pmflow-e2e-'))
+    t = '2026-05-05T10:00:00'
+    simulate_input(d, t)
+    simulate_align(d, t)
+    simulate_align_review(d, t)
+    simulate_design(d, t)
+    simulate_design_review(d, t)
+    simulate_wireframe(d, t)
+    simulate_wireframe_review(d, t)
+    simulate_prd(d, t)
+    simulate_prd_review(d, t)
+    simulate_prototype(d, t)
+    simulate_prototype_review(d, t, verdict='fail')
+
+    recommend = pm_guide_recommend(d)
+    assert_that('proto-fail', 'pm-guide 推荐回到 /pm-prototype',
+                recommend == '回到 /pm-prototype',
+                f'实际推荐: {recommend}')
+    assert_no_pm_confirm_in_text(recommend, 'proto-fail')
+
+    shutil.rmtree(d, ignore_errors=True)
+
+
+# ============================================================
+# TEST 45: profiles 文件存在
+# ============================================================
+def test45_prototype_profiles_exist():
+    print(f'\n{CYAN}=== TEST 45: prototype profiles 文件存在 ==={RESET}')
+    repo_root = Path(__file__).resolve().parent.parent
+
+    p1 = repo_root / 'profiles' / 'prototype-new-main.profile.yaml'
+    p2 = repo_root / 'profiles' / 'prototype-review-new-main.profile.yaml'
+    assert_that('proto-profiles', 'prototype-new-main.profile.yaml 存在', p1.exists())
+    assert_that('proto-profiles', 'prototype-review-new-main.profile.yaml 存在', p2.exists())
+
+    if p1.exists():
+        text = p1.read_text(encoding='utf-8')
+        assert_that('proto-profiles', 'prototype-new-main 包含 workflow_mode: new_main',
+                    'new_main' in text)
+        assert_that('proto-profiles', 'prototype-new-main 包含 review_checklist',
+                    'review_checklist' in text)
+        assert_that('proto-profiles', 'prototype-new-main 包含 page_id: PROTO-PAGE-001',
+                    'page_id: PROTO-PAGE-001' in text)
+
+    if p2.exists():
+        text = p2.read_text(encoding='utf-8')
+        assert_that('proto-profiles', 'prototype-review-new-main 包含 checks',
+                    'checks' in text)
+        assert_that('proto-profiles', 'prototype-review-new-main 包含 page_coverage',
+                    'page_coverage' in text)
+
+
+# ============================================================
+# TEST 46: 无 placeholder 残留
+# ============================================================
+def test46_no_placeholder_residue():
+    print(f'\n{CYAN}=== TEST 46: 无 placeholder 残留 ==={RESET}')
+    repo_root = Path(__file__).resolve().parent.parent
+
+    targets = [
+        ('contracts/new-main-chain.md', repo_root / 'contracts' / 'new-main-chain.md'),
+        ('commands/*.md', repo_root / 'commands'),
+        ('profiles/*.yaml', repo_root / 'profiles'),
+    ]
+
+    forbidden = ['尚未实现', '新主链.*尚未', 'placeholder 命令']
+    import re
+    for label, path in targets:
+        if path.is_dir():
+            for f in sorted(path.glob('*.md')) if label.endswith('*.md') else sorted(path.glob('*.yaml')):
+                text = f.read_text(encoding='utf-8')
+                for pat in forbidden:
+                    if re.search(pat, text):
+                        # 允许 legacy 文件中提到旧命令的"尚未实现"
+                        if '[legacy]' in text or 'legacy' in f.name:
+                            continue
+                        assert_that('no-placeholder', f'{f.relative_to(repo_root)} 不含"{pat}"',
+                                    False, f'found: {pat}')
+                        return
+        else:
+            if path.exists():
+                text = path.read_text(encoding='utf-8')
+                for pat in forbidden:
+                    if re.search(pat, text):
+                        assert_that('no-placeholder', f'{label} 不含"{pat}"',
+                                    False, f'found: {pat}')
+                        return
+
+    assert_that('no-placeholder', '所有文件无 placeholder 残留', True)
+
+
+# ============================================================
+# TEST 47: new_main reviewer 不写 snapshot / snapshot_records
+# ============================================================
+def test47_reviewer_no_snapshot_side_effects():
+    print(f'\n{CYAN}=== TEST 47: reviewer 不写 snapshot/snapshot_records ==={RESET}')
+    repo_root = Path(__file__).resolve().parent.parent
+
+    reviewers = {
+        'pm-align-reviewer': repo_root / 'skills' / 'pm-align-reviewer' / 'SKILL.md',
+        'pm-design-reviewer': repo_root / 'skills' / 'pm-design-reviewer' / 'SKILL.md',
+        'pm-wireframe-reviewer': repo_root / 'skills' / 'pm-wireframe-reviewer' / 'SKILL.md',
+        'pm-prd-reviewer': repo_root / 'skills' / 'pm-prd-reviewer' / 'SKILL.md',
+        'pm-prototype-reviewer': repo_root / 'skills' / 'pm-prototype-reviewer' / 'SKILL.md',
+    }
+
+    for name, path in reviewers.items():
+        assert_that('reviewer-side-effect', f'{name} SKILL.md 存在', path.exists())
+        if path.exists():
+            text = path.read_text(encoding='utf-8')
+            # 检查不得更新 snapshot
+            has_snapshot_update = 'snapshot' in text and ('更新' in text or '写入' in text)
+            has_snapshot_records = 'snapshot_records' in text
+            # 允许"不更新 snapshot"这种否定表达
+            if '不得' in text and 'snapshot' in text:
+                # 包含"不得"否定 → OK
+                pass
+            assert_that('reviewer-side-effect', f'{name} 不含 snapshot 更新（快照由 writer 负责）',
+                        not (has_snapshot_update and '不得' not in text),
+                        f'snapshot 相关文本: {[l for l in text.splitlines() if "snapshot" in l.lower()][:3]}')
+            # snapshot_records：允许"不得更新"否定表达
+            has_snapshot_records_write = 'snapshot_records' in text
+            if has_snapshot_records_write:
+                # 必须同时有"不得"否定
+                asserts_negated = '不得' in text
+                assert_that('reviewer-side-effect', f'{name} 含 snapshot_records 但已通过"不得"否定',
+                            asserts_negated,
+                            f'snapshot_records 行: {[l for l in text.splitlines() if "snapshot_records" in l][:2]}')
+            else:
+                assert_that('reviewer-side-effect', f'{name} 不含 snapshot_records 写入', True)
+
+
+# ============================================================
+# TEST 48: legacy-only skill 顶部含 legacy 说明
+# ============================================================
+def test48_legacy_skill_marked():
+    print(f'\n{CYAN}=== TEST 48: legacy-only skill 含 legacy 说明 ==={RESET}')
+    repo_root = Path(__file__).resolve().parent.parent
+
+    legacy_skills = [
+        ('brd-interviewer', repo_root / 'skills' / 'brd-interviewer' / 'SKILL.md'),
+        ('uc-interviewer', repo_root / 'skills' / 'uc-interviewer' / 'SKILL.md'),
+        ('solution-writer', repo_root / 'skills' / 'solution-writer' / 'SKILL.md'),
+        ('solution-reviewer', repo_root / 'skills' / 'solution-reviewer' / 'SKILL.md'),
+        ('prd-writer', repo_root / 'skills' / 'prd-writer' / 'SKILL.md'),
+        ('prd-reviewer', repo_root / 'skills' / 'prd-reviewer' / 'SKILL.md'),
+        ('prototype-designer', repo_root / 'skills' / 'prototype-designer' / 'SKILL.md'),
+        ('prototype-reviewer', repo_root / 'skills' / 'prototype-reviewer' / 'SKILL.md'),
+        ('pm-confirm', repo_root / 'skills' / 'pm-confirm' / 'SKILL.md'),
+    ]
+
+    for name, path in legacy_skills:
+        assert_that('legacy-mark', f'{name} SKILL.md 存在', path.exists())
+        if path.exists():
+            text = path.read_text(encoding='utf-8')
+            # 在标题行或前 5 行有 [legacy] 或 legacy 说明
+            head = '\n'.join(text.splitlines()[:5])
+            has_legacy_title = '[legacy]' in head
+            has_legacy_note = 'legacy' in head.lower()
+            assert_that('legacy-mark', f'{name} 顶部含 [legacy] 标记',
+                        has_legacy_title,
+                        f'head: {head[:200]}')
+            assert_that('legacy-mark', f'{name} 顶部含 legacy 说明',
+                        has_legacy_note,
+                        f'head: {head[:200]}')
+
+
+# ============================================================
 # Main
 # ============================================================
 if __name__ == '__main__':
@@ -1447,6 +1907,19 @@ if __name__ == '__main__':
     test33_prd_review_pass()
     test34_prd_review_warn()
     test35_prd_review_fail()
+    test36_pm_prototype_command_not_placeholder()
+    test37_pm_prototype_review_command_not_placeholder()
+    test38_pm_prototype_skill_content()
+    test39_pm_prototype_reviewer_skill_content()
+    test40_prd_review_pass_to_prototype()
+    test41_prototype_artifacts()
+    test42_prototype_review_pass()
+    test43_prototype_review_warn()
+    test44_prototype_review_fail()
+    test45_prototype_profiles_exist()
+    test46_no_placeholder_residue()
+    test47_reviewer_no_snapshot_side_effects()
+    test48_legacy_skill_marked()
 
     print(f'\n{MAGENTA}========================================{RESET}')
     print(f'{MAGENTA}  New Main Chain E2E Summary{RESET}')

@@ -1,9 +1,11 @@
 ---
-description: 原型审查。独立审查 prototype note，逐项检查 6 个维度。不进入 PRD。
+description: "[legacy] 原型审查。独立审查 prototype note，逐项检查 6 个维度。不进入 PRD。"
 argument-hint: 无参数，直接运行 /pm-proto-review
 ---
 
-# pm-proto-review
+# pm-proto-review [legacy]
+
+> **legacy**: 此命令属于旧主链，新项目请使用 `/pm-prototype-review` 替代。
 
 触发 skill：`prototype-reviewer`
 

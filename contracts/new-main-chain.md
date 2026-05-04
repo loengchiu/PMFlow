@@ -48,14 +48,14 @@ legacy 主链（brd -> uc -> solution -> prototype -> prd）仍可使用 `/pm-co
 - `pm_confirmations` 中仅存在 brd/uc 阶段记录 → 不得判为 legacy（brd/uc 可能是新链 input 阶段的旧命名迁移）
 - 仅凭 `current_stage` 为 prototype 或 prd → 不得判为 legacy（新旧链均可能到达此阶段）
 
-## 5. placeholder 规则
+## 5. legacy 命令说明
 
-placeholder 命令（wireframe、wireframe-review、prototype、prototype-review）：
+legacy 命令（pm-brd、pm-uc、pm-solution、pm-solution-review、pm-proto、pm-proto-review、pm-confirm）：
 
-- **不得**触发旧 skill（如 prototype-designer、prototype-reviewer）
-- 必须输出"尚未实现"并停止
-- 不生成任何产物
-- 不修改 `current_stage`
+- **不得**在 `workflow_mode: new_main` 时触发
+- 必须分流到对应的 new_main 命令并停止
+- 不生成新主链产物
+- 不修改 new_main 的 `current_stage`
 
 ## 6. writer 准入规则
 

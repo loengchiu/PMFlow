@@ -1,4 +1,6 @@
-# prototype-reviewer SOP
+# prototype-reviewer SOP [legacy]
+
+> **legacy**: 此 skill 属于旧主链。新项目请使用 `pm-prototype-reviewer` skill。
 
 ## 1. 前置读取
 

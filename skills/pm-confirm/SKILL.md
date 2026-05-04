@@ -1,4 +1,6 @@
-# pm-confirm SOP
+# pm-confirm SOP [legacy]
+
+> **legacy**: 此 skill 属于旧主链的 PM ownership gate。新主链不使用 `/pm-confirm`。
 
 ## 1. 前置读取
 

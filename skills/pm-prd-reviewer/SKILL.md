@@ -187,7 +187,9 @@ reviewer: pm-prd-reviewer
 
 追加同一条记录到 `.pmflow/status.yaml` 的 `review_results`。
 
-verdict 为 pass 或 warn 时，更新 `.pmflow/snapshots/prd/prd.last-synced.md` 内容与 `output/prd/prd.md` 一致，并追加 snapshot 记录到 `status.snapshot_records`。
+**不得**修改 `current_stage`（reviewer 不推进阶段）。
+**不得**更新产物快照或 `snapshot_records`（快照由 writer 负责）。
+**不得**写入 `pm_confirmations`、`approved_baselines`、`next_allowed_commands`。
 
 ## 6. 输出格式
 

@@ -1,6 +1,6 @@
 # prd-reviewer SOP [legacy]
 
-> **适用范围**：仅 legacy 主链（brd→uc→solution→prototype→prd）。新主链 PRD review 尚未实现，由 `commands/pm-prd-review.md` 分流到 placeholder。
+> **适用范围**：仅 legacy 主链（brd→uc→solution→prototype→prd）。新主链 PRD review 由 `pm-prd-reviewer` skill 处理。
 
 ## 1. 前置读取
 

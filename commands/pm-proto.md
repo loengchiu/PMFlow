@@ -1,9 +1,11 @@
 ---
-description: 原型设计。基于已确认的 solution，产出 prototype note。不进入 PRD。
+description: "[legacy] 原型设计。基于已确认的 solution，产出 prototype note。不进入 PRD。"
 argument-hint: 可附带设计规范或交互参考
 ---
 
-# pm-proto
+# pm-proto [legacy]
+
+> **legacy**: 此命令属于旧主链，新项目请使用 `/pm-prototype` 替代。
 
 触发 skill：`prototype-designer`
 
