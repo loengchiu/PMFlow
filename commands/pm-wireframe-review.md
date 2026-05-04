@@ -1,5 +1,5 @@
 ---
-description: 线框图审查。独立审查线框图是否覆盖 design 全部页面，主流程是否可走通。
+description: 线框说明稿审查。独立审查线框说明稿是否覆盖 design 核心页面，主流程是否可走通，落点是否完整。
 argument-hint: 无参数，直接运行 /pm-wireframe-review
 ---
 
@@ -9,7 +9,7 @@ argument-hint: 无参数，直接运行 /pm-wireframe-review
 
 ## 输入
 
-- `output/wireframe/wireframe.md`（人读线框图）
+- `output/wireframe/wireframe.md`（人读线框说明稿）
 - `.pmflow/metadata/wireframe/index.yaml`（机读索引）
 - 对应 design 产物和 metadata（交叉检查）
 - `profiles/wireframe.profile.yaml`（审查标准）
@@ -21,7 +21,7 @@ argument-hint: 无参数，直接运行 /pm-wireframe-review
 
 ## 不做什么
 
-- 不修改线框图文档
-- 不在 fail 时提示 /pm-prd 或任何后续命令
+- 不修改线框说明稿文档
+- 不在 fail 时提示 /pm-prd
 - 不在 pass/warn 时提示 /pm-wireframe 或任何后续命令（只提示 /pm-prd）
 - 不代 PM 确认

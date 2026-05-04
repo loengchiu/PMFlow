@@ -1,10 +1,10 @@
 # wireframe 阶段产物契约
-# /pm-wireframe 线框图
+# /pm-wireframe 线框说明稿
 
 profile:
   name: wireframe
-  version: "0.1.0"
-  purpose: 基于 design 产物生成线框图，将设计图形化，暴露页面流转和信息承载问题
+  version: "0.2.0"
+  purpose: 基于 design 产物生成 Markdown 线框说明稿，验证页面结构、跳转、落点和疑点
 
 stage_contract:
   gate: reviewer_check
@@ -12,22 +12,25 @@ stage_contract:
   reviewer_required: true
   reviewer_blocking: true
   pm_override_allowed: false
-  on_review_fail: 回到 /pm-wireframe 修正
+  on_review_fail: 线框表达问题回到 /pm-wireframe；design 层问题执行 /pm-fix
   on_review_pass: 手动执行 /pm-prd
 
 # 人读产物要求（PM 主阅读入口：output/wireframe/wireframe.md）
+# 结构对齐 templates/wireframe.md
 human_output_requirements:
-  - 页面清单（逐页名称、类型、所属模块）
-  - 页面间导航关系（从哪来、到哪去）
-  - 每页字段布局（字段分组、排列顺序、展示/编辑状态）
-  - 每页操作入口（按钮、链接、触发条件）
-  - 状态展示区域（当前状态、状态流转提示）
-  - 异常提示位置（校验错误、空状态、加载状态）
+  - 覆盖范围（来源 design、覆盖模块、覆盖页面、覆盖主流程）
+  - 页面跳转树（页面间进入、返回、衔接关系）
+  - 主流程说明（按用户动作和页面流转的编号步骤）
+  - 页面线框（逐页：页面跳转、页面结构 ASCII 草图、字段/操作/状态落点表、设计疑点）
+  - 设计疑点汇总（汇总所有页面层暴露的问题）
 
 # 机读 metadata 要求
+# metadata 只做索引，不复制完整线框正文
 machine_output_requirements:
   # 索引文件：.pmflow/metadata/wireframe/index.yaml
   index:
+    source_design_artifact: ""  # 来源 design 产物路径
+    source_design_metadata: ""  # 来源 design metadata 路径
     pages: []
     navigation: []
 
@@ -88,6 +91,14 @@ machine_output_requirements:
     #   display: 提示方式
     #   design_rule_ref: RULE-001
 
+  # 设计疑点索引
+  design_issues: []
+    # - id: WF-ISSUE-001
+    #   question: 问题描述
+    #   affected_pages: [WF-PAGE-001]
+    #   affected_flows: [FLOW-001]
+    #   suggestion: 建议处理
+
 # 上下文防爆规则
 context_control:
   human_read_entry: output/wireframe/wireframe.md
@@ -100,19 +111,31 @@ context_control:
 # review 标准（wireframe-review 使用）
 review_checklist:
   fail:
-    - 线框图超出 design 确认范围
+    - 线框说明稿超出 design 确认范围
     - 新增 design 中不存在的页面或模块
-    - design 中的核心页面在线框图中缺失
+    - design 中的核心页面在线框说明稿中缺失
     - 主流程页面间导航断裂（无法从入口走通到终点）
-    - 关键操作在线框图中无落点
+    - 关键操作在线框说明稿中无落点
     - 关键状态无展示区域
   warn:
     - 部分边缘页面的字段布局待细化
     - 部分异常提示位置待补充
     - 非核心页面的导航关系待补充
   pass:
-    - design 中所有页面在线框图中有落点
+    - design 中所有核心页面在线框说明稿中有落点
     - 主流程页面导航连贯可走通
     - 关键字段、操作、状态均有可见表达
+    - 设计疑点已清楚记录
     - 人读产物无机读字段泄漏
     - metadata 符合行数限制
+
+# review 输出必填字段
+review_required_fields:
+  - stage
+  - check_type
+  - verdict
+  - reviewed_artifact
+  - reviewed_metadata
+  - checked_at
+  - fail_reasons
+  - warnings

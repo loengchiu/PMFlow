@@ -1,5 +1,5 @@
 ---
-description: PRD 审查。新主链 placeholder / legacy 主链独立审查 PRD 文档。
+description: PRD 审查。新主链独立审查归档质量、字段一致性、规则覆盖 / legacy 主链独立审查 PRD 文档。
 argument-hint: 无参数，直接运行 /pm-prd-review
 ---
 
@@ -9,17 +9,36 @@ argument-hint: 无参数，直接运行 /pm-prd-review
 
 读取 `.pmflow/status.yaml` 中的 `workflow_mode`：
 
-- `workflow_mode: new_main` → 新主链 PRD review 尚未实现，输出 placeholder 并停止
+- `workflow_mode: new_main` → 触发 skill：`pm-prd-reviewer`
 - `workflow_mode: legacy` → 触发 skill：`prd-reviewer`
 - `workflow_mode` 缺失时，按 `contracts/new-main-chain.md` §4 推断
 
 ### 新主链（new_main）
 
-```text
-新主链 PRD review 阶段尚未实现，等待后续批次。
-```
+触发 skill：`pm-prd-reviewer`。
 
-停止。不生成任何产物，不触发 prd-reviewer skill，不读取 confirmed BRD/UC/solution/prototype，不提示 /pm-confirm。
+#### 输入
+
+- `output/prd/prd.md`（人读 PRD）
+- `.pmflow/metadata/prd/`（机读 metadata）
+- design / wireframe 的必要 metadata（交叉检查）
+- `profiles/prd-review-new-main.profile.yaml`（审查标准）
+- `profiles/prd-new-main.profile.yaml`（PRD 契约，对照检查）
+- `.pmflow/status.yaml`（当前状态）
+
+#### 输出
+
+- `.pmflow/reviews/prd-review-{timestamp}.yaml`（机读审查记录）
+- `.pmflow/status.yaml` 中 `review_results` 追加记录
+
+#### 不做什么
+
+- 不修改 PRD 文档或 metadata
+- 不修改 current_stage
+- 不写 pm_confirmations、approved_baselines、next_allowed_commands
+- pass/warn 只提示 /pm-prototype
+- fail 只提示 /pm-prd 或建议 /pm-fix
+- 不提示 /pm-confirm
 
 ### legacy 主链
 

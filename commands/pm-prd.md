@@ -1,5 +1,5 @@
 ---
-description: PRD 写作。新主链 placeholder / legacy 主链基于已确认前置基线生成归档 PRD。
+description: PRD 生成。新主链基于 design + wireframe 生成归档 PRD / legacy 主链基于已确认前置基线生成归档 PRD。
 argument-hint: 可附带业务规则、数据规范、权限说明等补充材料
 ---
 
@@ -9,18 +9,34 @@ argument-hint: 可附带业务规则、数据规范、权限说明等补充材�
 
 读取 `.pmflow/status.yaml` 中的 `workflow_mode`：
 
-- `workflow_mode: new_main` → 新主链 PRD 尚未实现，输出 placeholder 并停止
+- `workflow_mode: new_main` → 触发 skill：`pm-prd`
 - `workflow_mode: legacy` → 触发 skill：`prd-writer`
 - `workflow_mode` 缺失时，按 `contracts/new-main-chain.md` §4 推断
 
 ### 新主链（new_main）
 
-```text
-新主链 PRD 阶段尚未实现，等待后续批次。
-当前可手动执行 /pm-prd-review 检查已有的 PRD 产物（如有）。
-```
+触发 skill：`pm-prd`。
 
-停止。不生成任何产物，不触发 prd-writer skill，不读取 confirmed BRD/UC/solution/prototype，不提示 /pm-confirm。
+#### 输入
+
+- `.pmflow/status.yaml`（当前状态）
+- 最新 design 产物和 metadata
+- 最新 wireframe 产物和 metadata
+- 最近一次 wireframe-review 结果
+- PM 补充材料（业务规则、数据规范、权限说明等，如有）
+
+#### 输出
+
+- `output/prd/prd.md`（人读 PRD 主稿）
+- `.pmflow/metadata/prd/`（机读 metadata）
+- `.pmflow/snapshots/prd/prd.last-synced.md`（快照）
+
+#### 不做什么
+
+- 不读取 confirmed BRD/UC/solution/prototype
+- 不写 pm_confirmations、approved_baselines、next_allowed_commands
+- 不提示 /pm-confirm
+- 完成后只提示 /pm-prd-review
 
 ### legacy 主链
 

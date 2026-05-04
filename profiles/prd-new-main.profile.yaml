@@ -1,0 +1,165 @@
+# PRD 阶段产物契约（new_main）
+# /pm-prd 基于 design + wireframe 生成归档 PRD
+
+profile:
+  name: prd-new-main
+  version: "0.1.0"
+  purpose: 面向研发评审和归档的人读规格文档
+  workflow_mode: new_main
+
+stage_contract:
+  gate: reviewer_check
+  check_type: reviewer_check
+  reviewer_required: true
+  reviewer_blocking: true
+  pm_override_allowed: false
+  on_review_fail: PRD 表达问题回到 /pm-prd；design/wireframe 层问题执行 /pm-fix
+  on_review_pass: 手动执行 /pm-prototype
+
+# 前置条件
+prerequisites:
+  workflow_mode: new_main
+  current_stage: wireframe 或 prd
+  artifacts:
+    design: 非空
+    wireframe: 非空
+  review_results:
+    wireframe:
+      check_type: reviewer_check
+      verdict: [pass, warn]
+      binding: reviewed_artifact = artifacts.wireframe 最新, reviewed_metadata = wireframe metadata 最新
+  fix_debts:
+    open: 不存在
+
+# 人读产物要求（PM 主阅读入口：output/prd/prd.md）
+human_output_requirements:
+  - 文档概述（项目背景、目标、范围）
+  - 范围（范围内模块/页面、范围外内容）
+  - 业务流程（主流程步骤）
+  - 用户角色与权限（角色定义、权限矩阵）
+  - 数据字典（核心实体字段定义）
+  - 详细需求说明（按模块→页面→动作展开）
+  - 验收标准汇总（可测试、可判断）
+  - 风险与待确认
+
+# 按需章节（存在真实约束时出现）
+optional_sections:
+  - 公共模块说明
+  - 系统依赖
+  - 非功能要求
+  - 数据影响范围
+  - 建议实施顺序
+  - 附录
+
+# 机读 metadata 要求
+machine_output_requirements:
+  index:
+    source_design_artifact: ""
+    source_design_metadata: ""
+    source_wireframe_artifact: ""
+    source_wireframe_metadata: ""
+    pages: []
+    rules: []
+    acceptance: []
+
+  dictionary: []
+    # - id: PRD-FIELD-001
+    #   name: 字段名
+    #   type: string | integer | decimal | boolean | date | datetime
+    #   required: true | false
+    #   enum_values: []
+    #   default: ""
+    #   format: ""
+    #   min: 0
+    #   max: 100
+    #   description: ""
+    #   source: ""
+
+  pages: []
+    # - id: PRD-PAGE-001
+    #   name: 页面名称
+    #   page_code: P-01
+    #   module: 模块名
+    #   design_page_ref: PAGE-001
+    #   wireframe_page_ref: WF-PAGE-001
+    #   regions: []
+    #     # - name: 区域名
+    #     #   fields: []
+    #     #     # - field_id: PRD-FIELD-001
+    #     #     #   field_name: 字段名
+    #     #     #   usage: 展示 | 筛选 | 编辑 | 只读 | 校验 | 状态判断 | 权限判断 | 计算 | 导入 | 导出 | 验收依据
+    #   actions: []
+    #     # - id: PRD-ACT-001
+    #     #   name: 动作名
+    #     #   fields: []
+    #     #     # - field_id: PRD-FIELD-001
+    #     #     #   field_name: 字段名
+    #     #     #   usage: 编辑 | 只读 | 校验
+    #     #     #   rule_refs: []
+    #     #   rule_refs: []
+
+  rules: []
+    # - id: PRD-RULE-001
+    #   name: 规则名称
+    #   type: business | validation | permission | acceptance
+    #   field_refs: []
+    #   page_refs: []
+    #   action_refs: []
+    #   description: ""
+
+  trace: []
+    # - prd_section: "六、详细需求说明 / P-02 入库申请页 / 新增入库"
+    #   source_type: design | wireframe
+    #   source_ref: DESIGN-PAGE-INBOUND-REQUEST | WIREFRAME-PAGE-INBOUND-REQUEST
+
+# 上下文防爆规则
+context_control:
+  human_read_entry: output/prd/prd.md
+  ai_generation: 逐页生成，先数据字典后详细需求
+  ai_reading: 先读 metadata index，再按页面读取相关分片
+  file_limits:
+    index: 200 行
+    single_page_metadata: 300 行
+    single_entity_metadata: 200 行
+
+# review 标准（pm-prd-reviewer 使用）
+review_checklist:
+  fail:
+    - 归档可读性：需要反复回看 design/wireframe 才能理解
+    - 正文写法：大量机械填空或只写泛泛功能
+    - 页面覆盖：核心页面缺失
+    - 动作覆盖：提交、审批、确认、导入导出等关键动作缺规则
+    - 字段一致性：正文字段无字典定义，或字典核心字段无正文落点
+    - 规则覆盖：核心规则、权限或验收缺失
+    - 来源追溯：出现未确认扩展或来源断裂
+    - 人机分离：出现内部路径、metadata 字段、review 字段、trace block
+  warn:
+    - 归档可读性：个别概念需补充但不影响评审
+    - 正文写法：个别动作略空或略模板化
+    - 页面覆盖：边缘页面略简
+    - 动作覆盖：边缘动作可补充
+    - 字段一致性：边缘字段落点可补
+    - 规则覆盖：边缘规则待补
+    - 来源追溯：个别来源不完整
+  pass:
+    - 归档可读性：研发只读 PRD 能理解范围、页面、规则、验收
+    - 正文写法：页面按目标、功能点、区域职责、动作自然展开
+    - 页面覆盖：design 核心页面都有 PRD 章节
+    - 动作覆盖：核心动作有触发、结果、状态或异常说明
+    - 字段一致性：正文字段与数据字典能双向反查
+    - 规则覆盖：业务规则、异常、权限、验收覆盖核心流程
+    - 来源追溯：PRD 内容能追溯到 design 或 wireframe
+    - 人机分离：人读 PRD 干净
+
+# review 输出必填字段
+review_required_fields:
+  - stage
+  - check_type
+  - verdict
+  - reviewed_artifact
+  - reviewed_metadata
+  - checked_at
+  - fail_reasons
+  - warnings
+  - checks_detail
+  - reviewer

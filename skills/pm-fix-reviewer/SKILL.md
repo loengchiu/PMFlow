@@ -103,7 +103,7 @@ checked_at: ""
 
 ### 4.3 关闭债务
 
-verdict 为 pass 或时，将已收口的 debt 状态更新为 `closed`，记录 `closed_at`。
+verdict 为 pass 或 warn 时，将已收口的 debt 状态更新为 `closed`，记录 `closed_at`。
 
 ## 5. 输出格式
 

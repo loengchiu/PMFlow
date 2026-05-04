@@ -1,0 +1,133 @@
+# PRD review 审查契约（new_main）
+# /pm-prd-reviewer 使用
+
+profile:
+  name: prd-review-new-main
+  version: "0.1.0"
+  stage: prd
+  type: reviewer
+  workflow_mode: new_main
+  reviewer_blocking: true
+  pm_override_allowed: false
+
+# 前置条件
+prerequisites:
+  workflow_mode: new_main
+  artifacts:
+    prd: 包含 output/prd/prd.md
+  files:
+    output/prd/prd.md: 存在
+    .pmflow/metadata/prd/index.yaml: 存在
+    .pmflow/metadata/prd/dictionary.yaml: 存在
+  metadata_reachable:
+    - dictionary.yaml 字段主定义完整
+    - pages/*.yaml 中的 field_id 能在 dictionary.yaml 找到
+    - rules.yaml 中的 field_id / page_id / action_id 能在对应文件找到
+    - dictionary.yaml 核心字段至少有一个落点（页面、区域、动作、规则或验收）
+    - PRD 正文字段能在 dictionary.yaml 找到
+    - trace.yaml 能说明 PRD 核心内容来自 design / wireframe
+
+# reviewer 独立检查项
+checks:
+  - id: archive_readability
+    label: 归档可读性
+    method: 假设读者未读过 design/wireframe，逐节检查 PRD 是否自包含
+    verdict:
+      pass: 研发只读 PRD 能理解范围、页面、规则、验收
+      warn: 个别概念需补充但不影响评审
+      fail: 需要反复回看 design/wireframe 才能理解
+    blocking: true
+
+  - id: writing_quality
+    label: 正文写法
+    method: 检查页面是否按目标、功能点、区域职责、动作自然展开
+    verdict:
+      pass: 页面按目标、功能点、区域职责、动作自然展开
+      warn: 个别动作略空或略模板化
+      fail: 大量机械填空或只写泛泛功能
+    blocking: true
+
+  - id: page_coverage
+    label: 页面覆盖
+    method: 对照 design 核心页面，检查 PRD 是否有对应章节
+    verdict:
+      pass: design 核心页面都有 PRD 章节
+      warn: 边缘页面略简
+      fail: 核心页面缺失
+    blocking: true
+
+  - id: action_coverage
+    label: 动作覆盖
+    method: 检查核心动作是否有触发、结果、状态或异常说明
+    verdict:
+      pass: 核心动作有触发、结果、状态或异常说明
+      warn: 边缘动作可补充
+      fail: 提交、审批、确认、导入导出等关键动作缺规则
+    blocking: true
+
+  - id: field_consistency
+    label: 字段一致性
+    method: 双向反查正文字段与数据字典
+    verdict:
+      pass: 正文字段与数据字典能双向反查
+      warn: 边缘字段落点可补
+      fail: 正文字段无字典定义，或字典核心字段无正文落点
+    blocking: true
+
+  - id: rule_coverage
+    label: 规则覆盖
+    method: 检查业务规则、异常、权限、验收是否覆盖核心流程
+    verdict:
+      pass: 业务规则、异常、权限、验收覆盖核心流程
+      warn: 边缘规则待补
+      fail: 核心规则、权限或验收缺失
+    blocking: true
+
+  - id: source_trace
+    label: 来源追溯
+    method: 检查 PRD 内容是否能追溯到 design 或 wireframe
+    verdict:
+      pass: PRD 内容能追溯到 design 或 wireframe
+      warn: 个别来源不完整
+      fail: 出现未确认扩展或来源断裂
+    blocking: true
+
+  - id: human_machine_separation
+    label: 人机分离
+    method: 在人读 PRD 中搜索禁止字段
+    forbidden:
+      - 内部路径（.pmflow/、output/）
+      - metadata 字段名（field_id、page_id、rule_id 等）
+      - review 字段（verdict、check_type 等）
+      - trace block（anchor_id、rules_ref 等）
+      - 稳定 ID（FIELD-*、PAGE-*、RULE-*、REQ-*）
+    verdict:
+      pass: 人读 PRD 干净
+      warn: 不适用
+      fail: 出现内部路径、metadata 字段、review 字段、trace block
+    blocking: true
+
+# 输出
+outputs:
+  machine:
+    path_pattern: .pmflow/reviews/prd-review-{timestamp}.yaml
+    required_fields:
+      - stage
+      - check_type
+      - verdict
+      - reviewed_artifact
+      - reviewed_metadata
+      - checks_detail
+      - fail_reasons
+      - warnings
+      - checked_at
+      - reviewer
+  status_dual_write:
+    target: .pmflow/status.yaml review_results
+    rule: 追加同一条记录，不修改 current_stage
+
+# 路由
+routing:
+  on_pass: 下一步唯一建议 /pm-prototype
+  on_warn: 下一步唯一建议 /pm-prototype
+  on_fail: 下一步唯一建议 /pm-prd（PRD 表达问题）或 /pm-fix（design/wireframe 层问题）

@@ -1,6 +1,6 @@
 ---
 name: pm-wireframe-reviewer
-description: 线框图审查。检查线框图是否覆盖 design 全部页面，主流程是否可走通。
+description: 线框说明稿审查。检查线框说明稿是否覆盖 design 核心页面，主流程是否可走通，落点是否完整。
 triggers: ["/pm-wireframe-review"]
 tags: [pmflow, wireframe, review]
 ---
@@ -14,9 +14,12 @@ tags: [pmflow, wireframe, review]
 - `contracts/new-main-chain.md`（新主链硬约束）
 - `schemas/status.schema.yaml`（状态 schema）
 - `profiles/wireframe.profile.yaml`（wireframe 产物契约，重点 review_checklist）
-- 最新 wireframe 产物（`output/wireframe/` 下最新文件）
+- `templates/wireframe.md`（wireframe 人读骨架，用于对照结构）
+- `references/wireframe-writing.md`（写法参考）
+- 最新 wireframe 产物（`output/wireframe/wireframe.md`）
 - 最新 wireframe metadata（`.pmflow/metadata/wireframe/` 下的 index.yaml 和相关分片）
 - 对应 design 产物和 metadata（用于交叉检查基线绑定和页面覆盖）
+- 最近一次 design-review 结果
 
 ## 2. 前置检查
 
@@ -24,12 +27,14 @@ tags: [pmflow, wireframe, review]
 
 - `current_stage` 为 `design` 或 `wireframe`（wireframe writer 可能尚未更新 current_stage）
 - `artifacts.wireframe` 非空
+- `output/wireframe/wireframe.md` 存在于磁盘
+- `.pmflow/metadata/wireframe/index.yaml` 存在于磁盘
 - `review_results` 中存在 `stage: design` 且 `check_type: reviewer_check` 的记录
 - 最近一次 design reviewer_check 的 `verdict` 为 `pass` 或 `warn`
 - 最近一次 design reviewer_check 的 `reviewed_artifact` 等于 `artifacts.design` 最新路径
 - 最近一次 design reviewer_check 的 `reviewed_metadata` 等于当前 design metadata 路径
 
-条件不满足：停止，提示 PM 当前没有可审查的 wireframe 产物。
+条件不满足：停止，提示 PM 当前没有可审查的线框说明稿。
 不得写入 wireframe review 文件，不得追加 `status.review_results`，不得提示 /pm-prd。
 
 ## 3. 审查方法
@@ -44,7 +49,7 @@ tags: [pmflow, wireframe, review]
 
 ### 3.2 页面覆盖检查
 
-- design metadata 中的每个页面是否在线框图中有对应条目
+- design metadata 中的核心页面是否在页面跳转树或页面线框中有对应条目
 - 核心页面是否全部覆盖
 - 缺失页面的具体 ID 和名称
 
@@ -54,14 +59,19 @@ tags: [pmflow, wireframe, review]
 - 从入口页面到终点页面是否可连贯走通
 - 分支和回退路径是否标注
 
-### 3.4 字段/操作/状态落地检查
+### 3.4 字段 / 操作 / 状态落点检查
 
-- design 中的关键字段是否在线框图的页面字段布局中出现
-- design 中的关键操作是否在线框图的操作入口中出现
-- design 中的关键状态是否在线框图的状态展示区域中出现
-- 检查方式：抽取 design metadata 中的 fields、flows、states，逐项在线框图中查找
+- design 中的关键字段是否在页面线框的落点表中出现
+- design 中的关键操作是否在页面线框的落点表中出现
+- design 中的关键状态是否在页面线框的落点表中出现
+- 检查方式：抽取 design metadata 中的 fields、flows、states，逐项在 wireframe 中查找
 
-### 3.5 人机分离检查
+### 3.5 设计疑点检查
+
+- wireframe 中记录的设计疑点是否清楚描述了问题、影响页面和建议处理
+- 是否有页面层暴露的问题未被记录
+
+### 3.6 人机分离检查
 
 - 人读产物是否泄漏机读字段（anchor_id、rules_ref 等）
 - metadata 分片是否符合行数限制
@@ -98,6 +108,10 @@ checks_detail:
     verdict: pass | warn | fail
     detail: ""
     suggestion: ""
+  - id: design_issues
+    verdict: pass | warn | fail
+    detail: ""
+    suggestion: ""
   - id: human_machine_separation
     verdict: pass | warn | fail
     detail: ""
@@ -110,9 +124,9 @@ checks_detail:
 
 **fail（阻断）**：任一项 review_checklist fail 条件满足
 
-- 线框图超出 design 确认范围
+- 线框说明稿超出 design 确认范围
 - 新增 design 中不存在的页面或模块
-- design 中的核心页面在线框图中缺失
+- design 中的核心页面在线框说明稿中缺失
 - 主流程页面间导航断裂
 - 关键操作无落点
 - 关键状态无展示区域
@@ -125,9 +139,10 @@ checks_detail:
 
 **pass（通过）**：review_checklist pass 条件全部满足
 
-- design 中所有页面在线框图中有落点
+- design 中所有核心页面在线框说明稿中有落点
 - 主流程页面导航连贯可走通
 - 关键字段、操作、状态均有可见表达
+- 设计疑点已清楚记录
 - 人读产物无机读字段泄漏
 - metadata 符合行数限制
 
@@ -136,7 +151,7 @@ checks_detail:
 ### 5.1 pass 或 warn 时
 
 ```text
-线框图审查完成。
+线框说明稿审查完成。
 
 整体判定：pass / warn
 
@@ -144,7 +159,8 @@ checks_detail:
 - 基线绑定：{verdict}
 - 页面覆盖：{verdict}
 - 主流程走通：{verdict}
-- 字段/操作/状态落地：{verdict}
+- 字段/操作/状态落点：{verdict}
+- 设计疑点：{verdict}
 - 人机分离：{verdict}
 
 {如果是 warn：风险项已记录，PM 请知情确认。}
@@ -158,23 +174,25 @@ checks_detail:
 ### 5.2 fail 时
 
 ```text
-线框图审查未通过。
+线框说明稿审查未通过。
 
 整体判定：fail
 
 阻断项：
 - {逐项列出 fail 的原因和修正建议}
 
-PM 不可越权推进。唯一允许的操作：回到线框图阶段修正。
+判定建议：
+- 如果是线框表达问题（页面缺失、导航断裂、落点遗漏）：建议回到 /pm-wireframe 修正
+- 如果是 design 层问题（design 缺少映射、规则不完整、流程未闭合）：建议执行 /pm-fix 修正 design
 
-下一步唯一建议：/pm-wireframe
+PM 不可越权推进。
 ```
 
 ## 6. 停止条件
 
 - 输出审查结果后**必须停止**
 - 不得在 pass/warn 后提示 /pm-wireframe 或任何后续命令（只提示 /pm-prd）
-- 不得在 fail 后提示 /pm-prd（只提示 /pm-wireframe）
+- 不得在 fail 后提示 /pm-prd（只提示 /pm-wireframe 或 /pm-fix）
 - 不得提示"要我现在做吗"
 - 不得代 PM 确认
 
@@ -202,7 +220,7 @@ PM 不可越权推进。唯一允许的操作：回到线框图阶段修正。
 ```text
 用户：/pm-wireframe-review
 AI：（读取 wireframe 产物、metadata、design 产物、metadata，逐项审查）
-AI：线框图审查完成。
+AI：线框说明稿审查完成。
     整体判定：pass
     下一步唯一建议：/pm-prd
 ```

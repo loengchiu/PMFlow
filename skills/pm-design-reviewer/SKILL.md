@@ -23,9 +23,13 @@ tags: [pmflow, design, review]
 
 - `current_stage` 为 `align` 或 `design`（design writer 可能尚未更新 current_stage）
 - `artifacts.design` 非空
-- align review 的 `reviewed_artifact` 等于 align 最新路径（基线绑定校验）
+- `review_results` 中存在 `stage: align` 且 `check_type: reviewer_check` 的记录
+- 最近一次 align reviewer_check 的 `verdict` 为 `pass` 或 `warn`
+- 最近一次 align reviewer_check 的 `reviewed_artifact` 等于 `artifacts.align` 最新路径
+- 最近一次 align reviewer_check 的 `reviewed_metadata` 等于当前 align metadata 路径
 
 条件不满足：停止，提示 PM 当前没有可审查的 design 产物。
+不得写入 design review 文件，不得追加 `status.review_results`，不得提示 /pm-wireframe。
 
 ## 3. 审查方法
 
