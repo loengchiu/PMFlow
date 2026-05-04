@@ -1,0 +1,112 @@
+# 原型阶段产物契约（new_main）
+# /pm-prototype 基于 design + wireframe + PRD 生成高保真 HTML 原型
+
+profile:
+  name: prototype-new-main
+  version: "0.1.0"
+  purpose: 面向研发理解和评审展示的高保真 HTML 业务原型
+  workflow_mode: new_main
+
+stage_contract:
+  gate: reviewer_check
+  check_type: reviewer_check
+  reviewer_required: true
+  reviewer_blocking: true
+  pm_override_allowed: false
+  on_review_fail: 原型表达问题回到 /pm-prototype；PRD/wireframe/design 层问题执行 /pm-fix
+  on_review_pass: 主链路完成，如需修改执行 /pm-fix
+
+# 前置条件
+prerequisites:
+  workflow_mode: new_main
+  current_stage: prd 或 prototype
+  artifacts:
+    prd: 包含 output/prd/prd.md
+  review_results:
+    prd:
+      check_type: reviewer_check
+      verdict: [pass, warn]
+      binding: reviewed_artifact = artifacts.prd 最新, reviewed_metadata = .pmflow/metadata/prd/index.yaml
+  fix_debts:
+    open: 不存在
+
+# 人读产物要求
+human_output_requirements:
+  - 静态 HTML/CSS/JS，可本地打开
+  - 支持主流程点击走通
+  - 支持页面切换、tab 切换、列表查看详情、查询/重置、保存反馈、弹窗确认
+  - 使用贴近业务字段的 mock 数据
+  - 不需要真实接口
+
+# 机读 metadata 要求
+machine_output_requirements:
+  source_prd_artifact: ""
+  source_prd_metadata: ""
+  source_wireframe_artifact: ""
+  source_wireframe_metadata: ""
+  pages: []
+    # - page_id: PROTO-PAGE-001
+    #   page_name: 页面名称
+    #   page_type: list | detail | form | config | dashboard | approval
+    #   prd_page_ref: PRD-PAGE-001
+    #   wireframe_page_ref: WF-PAGE-001
+    #   prototype_anchor: "#page-001"
+    #   fields: []
+    #   actions: []
+  flows: []
+    # - id: FLOW-001
+    #   name: 主流程名
+    #   steps: []
+
+# 上下文防爆规则
+context_control:
+  human_read_entry: output/prototype/index.html
+  ai_generation: 逐页生成，先结构后细节
+  ai_reading: 先读 PRD metadata index，再按页面读取相关分片
+  file_limits:
+    single_html: 3000 行
+
+# review 标准
+review_checklist:
+  fail:
+    - 可打开性：文件不存在或无法解析
+    - 页面覆盖：核心页面缺失
+    - 字段覆盖：核心字段缺失或与 PRD / dictionary 不一致
+    - 动作覆盖：核心动作缺失
+    - 流程走通：主流程不可点击走通
+    - 规则表达：核心规则缺失
+    - UI 一致性：风格严重偏离
+    - 范围一致：新增未确认业务流程
+    - 人机分离：出现内部 metadata、review 字段、稳定 ID
+  warn:
+    - 可打开性：文件存在但有轻微语法问题
+    - 页面覆盖：边缘页面略简
+    - 字段覆盖：边缘字段可补充
+    - 动作覆盖：边缘动作可补充
+    - 流程走通：主流程基本可走但有轻微卡点
+    - 规则表达：边缘规则可补充
+    - UI 一致性：UI 细节略粗糙但不影响评审
+    - 范围一致：有轻微扩展但不影响评审
+  pass:
+    - 可打开性：文件存在且为有效 HTML
+    - 页面覆盖：PRD 核心页面在原型中有对应页面或状态
+    - 字段覆盖：PRD 核心字段在对应页面可见或可交互
+    - 动作覆盖：PRD 核心动作有可点击入口或明确状态
+    - 流程走通：主流程能点击走通
+    - 规则表达：核心校验、权限、状态、异常有可见表达
+    - UI 一致性：符合中后台风格
+    - 范围一致：未新增 PRD 未定义的业务内容
+    - 人机分离：页面干净
+
+# review 输出必填字段
+review_required_fields:
+  - stage
+  - check_type
+  - verdict
+  - reviewed_artifact
+  - reviewed_metadata
+  - checked_at
+  - fail_reasons
+  - warnings
+  - checks_detail
+  - reviewer

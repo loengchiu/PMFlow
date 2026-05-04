@@ -1,0 +1,134 @@
+# 原型 review 审查契约（new_main）
+# /pm-prototype-reviewer 使用
+
+profile:
+  name: prototype-review-new-main
+  version: "0.1.0"
+  stage: prototype
+  type: reviewer
+  workflow_mode: new_main
+  reviewer_blocking: true
+  pm_override_allowed: false
+
+# 前置条件
+prerequisites:
+  workflow_mode: new_main
+  artifacts:
+    prototype: 包含 output/prototype/index.html
+  files:
+    output/prototype/index.html: 存在
+    .pmflow/metadata/prototype/index.yaml: 存在
+  metadata_reachable:
+    - prototype metadata 能反查页面、字段、动作、流程、来源
+
+# reviewer 独立检查项
+checks:
+  - id: openability
+    label: 可打开性
+    method: 检查 index.html 是否可本地打开
+    verdict:
+      pass: 文件存在且为有效 HTML
+      warn: 文件存在但有轻微语法问题
+      fail: 文件不存在或无法解析
+    blocking: true
+
+  - id: page_coverage
+    label: 页面覆盖
+    method: 对照 PRD 核心页面，检查原型是否有对应页面或状态
+    verdict:
+      pass: PRD 核心页面在原型中有对应页面或状态
+      warn: 边缘页面略简
+      fail: 核心页面缺失
+    blocking: true
+
+  - id: field_coverage
+    label: 字段覆盖
+    method: 检查 PRD 核心字段在对应页面是否可见或可交互
+    verdict:
+      pass: PRD 核心字段在对应页面可见或可交互
+      warn: 边缘字段可补充
+      fail: 核心字段缺失或与 PRD / dictionary 不一致
+    blocking: true
+
+  - id: action_coverage
+    label: 动作覆盖
+    method: 检查 PRD 核心动作是否有可点击入口或明确状态
+    verdict:
+      pass: PRD 核心动作有可点击入口或明确状态
+      warn: 边缘动作可补充
+      fail: 核心动作缺失
+    blocking: true
+
+  - id: flow_walkthrough
+    label: 流程走通
+    method: 检查 wireframe / PRD 主流程是否能点击走通
+    verdict:
+      pass: 主流程能点击走通
+      warn: 主流程基本可走但有轻微卡点
+      fail: 主流程不可点击走通
+    blocking: true
+
+  - id: rule_expression
+    label: 规则表达
+    method: 检查核心校验、权限、状态、异常是否有可见表达
+    verdict:
+      pass: 核心校验、权限、状态、异常有可见表达
+      warn: 边缘规则可补充
+      fail: 核心规则缺失
+    blocking: true
+
+  - id: ui_consistency
+    label: UI 一致性
+    method: 检查是否符合 references/prototype-ui-style.md
+    verdict:
+      pass: 符合中后台风格
+      warn: UI 细节略粗糙但不影响评审
+      fail: 风格严重偏离
+    blocking: true
+
+  - id: scope_consistency
+    label: 范围一致
+    method: 检查是否新增了 PRD 未定义的业务字段、操作、状态、流程
+    verdict:
+      pass: 未新增 PRD 未定义的业务内容
+      warn: 有轻微扩展但不影响评审
+      fail: 新增未确认业务流程
+    blocking: true
+
+  - id: human_machine_separation
+    label: 人机分离
+    method: 在原型页面中搜索禁止内容
+    forbidden:
+      - 内部 metadata
+      - review 字段
+      - 稳定 ID（FIELD-*、PAGE-*、RULE-*、REQ-*）
+    verdict:
+      pass: 页面干净
+      warn: 不适用
+      fail: 出现内部 metadata、review 字段、稳定 ID
+    blocking: true
+
+# 输出
+outputs:
+  machine:
+    path_pattern: .pmflow/reviews/prototype-review-{timestamp}.yaml
+    required_fields:
+      - stage
+      - check_type
+      - verdict
+      - reviewed_artifact
+      - reviewed_metadata
+      - checks_detail
+      - fail_reasons
+      - warnings
+      - checked_at
+      - reviewer
+  status_dual_write:
+    target: .pmflow/status.yaml review_results
+    rule: 追加同一条记录，不修改 current_stage
+
+# 路由
+routing:
+  on_pass: 主链路完成，如需修改执行 /pm-fix
+  on_warn: 主链路完成，如需修改执行 /pm-fix
+  on_fail: 下一步唯一建议 /pm-prototype（原型表达问题）或 /pm-fix（PRD/wireframe/design 层问题）
