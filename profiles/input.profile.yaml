@@ -23,6 +23,8 @@ human_output_requirements:
   - 建设类型初判（新建 / 优化迭代 / 混合 / 待确认）
   - 缺口与冲突清单
   - 待补充问题清单（可问需求方的问题）
+  - 补充方式（会话补充 / 补充文件 / 需求方确认后补充）
+  - 人读物使用简单数字编号，不暴露 GAP-001、CONFLICT-002 等机读 ID
   - 是否可以进入 /pm-align
 
 # 机读 metadata 要求
@@ -41,6 +43,9 @@ machine_output_requirements:
     #   description: 缺口描述
     #   related_materials: []
     #   question_to_ask: 可问需求方的问题
+    #   supplement_mode: 会话补充 | 补充文件 | 需求方确认后补充
+    #   suggested_file: 建议补充文件名，可为空
+    #   suggested_format: 建议补充格式，可为空
   conflicts: []
     # - id: CONFLICT-001
     #   description: 冲突描述

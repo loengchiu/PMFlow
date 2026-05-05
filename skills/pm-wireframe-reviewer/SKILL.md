@@ -7,8 +7,11 @@ tags: [pmflow, wireframe, review]
 
 # pm-wireframe-reviewer 审查 SOP
 
+按独立审查模式执行。不依赖 writer 会话结论，重新读取 status / artifact / metadata / profile 后再审查。
+
 ## 1. 前置读取
 
+- `contracts/reviewer-independence.md`（独立审查契约）
 - `contracts/gates.md`（门禁定义，重点 reviewer 门禁）
 - `contracts/human-sync.md`（人机同步契约）
 - `contracts/new-main-chain.md`（新主链硬约束）

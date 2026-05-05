@@ -172,8 +172,20 @@ output/prototype/
 - reviewer 负责独立审查当前阶段产物。
 - reviewer 通过后也不会自动进入下一阶段。
 - 下一阶段只能由 PM 手动执行下一条命令。
+- review 不会自动触发，仍由 PM 手动执行 `/pm-xxx-review`。
+- PMFlow 不使用 hook 自动推进或自动 review。
 - 有未收口的 `/pm-fix` 债务时，`/pm-guide` 会优先推荐 `/pm-fix-review`。
 - 当前发布版不使用 `/pm-confirm`。
+
+## Review 执行方式
+
+推荐在新会话或独立 agent 中执行 review，确保审查独立于 writer 会话。
+
+- Claude Code：可使用 subagent 或新会话执行 reviewer。
+- Trae-CN：默认按独立审查模式执行。
+- 其他宿主：默认按独立审查模式执行。
+
+独立审查模式要求 reviewer 重新读取 status、产物、metadata 和 profile，不依赖 writer 会话结论。详见 `contracts/reviewer-independence.md`。
 
 ## 常见情况
 
@@ -193,6 +205,14 @@ output/prototype/
 /pm-input 需求方补了一份字段表，你看一下。
 /pm-align 需求方补了流程图，更新对齐稿。
 ```
+
+`/pm-input` 只列问题，不回答问题。回答问题在 `/pm-align` 阶段处理：
+
+- 简短事实可以在执行 `/pm-align` 时直接补充，例如 `/pm-align 审批层级是两级`。
+- 字段表、流程图、截图、会议纪要这类成批材料，先放到业务项目文件里，再执行 `/pm-input 文件路径是 ...`。如果是大批原始材料再回 `/pm-input`，新增少量材料可在 `/pm-align` 时提供。
+- 需要需求方确认的问题，先问需求方，拿到确认后在 `/pm-align` 中补充。
+
+人读稿里的问题编号只用 `1`、`2`、`3`，复杂 ID 只保留在 `.pmflow/metadata/` 里。
 
 如果已经进入 design、PRD 或 prototype，使用：
 

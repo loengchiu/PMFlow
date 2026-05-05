@@ -31,6 +31,7 @@ REQUIRED_FILES = [
     'contracts/human-sync.md',
     'contracts/new-main-chain.md',
     'contracts/review-debt.md',
+    'contracts/reviewer-independence.md',
     'contracts/snapshot-diff.md',
     'schemas/status.schema.yaml',
     'profiles/input.profile.yaml',
@@ -41,6 +42,7 @@ REQUIRED_FILES = [
     'profiles/prd-review-new-main.profile.yaml',
     'profiles/prototype-new-main.profile.yaml',
     'profiles/prototype-review-new-main.profile.yaml',
+    'templates/input.md',
     'templates/align.md',
     'templates/design.md',
     'templates/prd.md',
@@ -160,6 +162,28 @@ def check_release_shape() -> None:
             ok(item.name in ROOT_FILES, f'根目录不应存在文件: {item.name}')
 
 
+def check_reviewer_independence() -> None:
+    contract_path = ROOT / 'contracts' / 'reviewer-independence.md'
+    ok(contract_path.is_file(), '缺少文件: contracts/reviewer-independence.md')
+    reviewer_skills = [
+        'pm-align-reviewer',
+        'pm-design-reviewer',
+        'pm-wireframe-reviewer',
+        'pm-prd-reviewer',
+        'pm-prototype-reviewer',
+        'pm-fix-reviewer',
+    ]
+    for name in reviewer_skills:
+        path = ROOT / 'skills' / name / 'SKILL.md'
+        if not path.is_file():
+            continue
+        text = read(path)
+        ok('reviewer-independence.md' in text,
+           f'{name}/SKILL.md 未引用 reviewer-independence.md')
+        ok('独立审查' in text,
+           f'{name}/SKILL.md 缺少"独立审查"关键词')
+
+
 def check_no_old_markers() -> None:
     targets = [
         ROOT / 'AGENTS.md',
@@ -202,6 +226,7 @@ def main() -> int:
     check_skills()
     check_removed_paths()
     check_release_shape()
+    check_reviewer_independence()
     check_no_old_markers()
     check_installer()
 

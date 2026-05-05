@@ -12,6 +12,7 @@ tags: [pmflow, input, material]
 - `contracts/gates.md`（门禁定义）
 - `schemas/status.schema.yaml`（状态 schema）
 - `profiles/input.profile.yaml`（input 产物契约）
+- `templates/input.md`（材料盘点稿骨架）
 
 ## 2. 前置检查
 
@@ -87,11 +88,27 @@ tags: [pmflow, input, material]
 
 把缺口转成可问需求方的问题。
 
+### 3.7 补充方式标记
+
+每个待补充问题必须给出推荐补充方式：
+
+- `会话补充`：适合一句话能回答的问题，如是否需要审批、角色名称、字段是否必填。
+- `补充文件`：适合字段表、流程图、会议纪要、截图、批量规则、长段说明。
+- `需求方确认后补充`：适合 PM 不能代答、必须问需求方的问题。
+
+如果建议补充文件，必须说明建议文件名和内容格式，例如：
+
+```text
+建议新建 output/input/supplement-字段表.md，按“字段 / 类型 / 必填 / 说明 / 来源”补充。
+```
+
 ## 4. 输出生成
 
 ### 4.1 人读产物
 
 写入 `output/input/input-{timestamp}.md`。
+
+必须使用 `templates/input.md` 的章节骨架。
 
 必须包含：
 
@@ -101,9 +118,20 @@ tags: [pmflow, input, material]
 - 建设类型初判
 - 缺口与冲突清单
 - 待补充问题清单
+- 每个待补充问题的推荐补充方式
 - 是否可以进入 /pm-align
 
 禁止出现机读字段、内部路径、机器 ID。
+
+人读产物编号使用简单数字编号，如 `1`、`2`、`3`。不得在人读稿中暴露 `GAP-001`、`CONFLICT-002`、`MAT-003` 这类机读 ID。
+
+待补充问题按补充方式分组展示：
+
+- 可一句话补充（在 /pm-align 中提供）
+- 建议整理成文件后重新执行 /pm-input
+- 需要先问需求方确认
+
+问题不在 input 阶段回答，全部带入 /pm-align 处理。PM 可在执行 /pm-align 时直接补充答案，或在 /pm-align 多轮对齐中逐步关闭问题。
 
 ### 4.2 机读 metadata
 
@@ -142,6 +170,11 @@ tags: [pmflow, input, material]
 
 [pass/warn] 下一步唯一建议：/pm-align
 [fail] 需要补充材料后重新执行 /pm-input
+
+补充方式：
+- 可一句话补充（在 /pm-align 中提供）：1、2、3
+- 建议整理成文件后重新执行 /pm-input：1（建议文件：xxx.md）
+- 需要先问需求方确认：1、2
 ```
 
 ## 6. 停止条件
@@ -168,5 +201,6 @@ AI：材料盘点完成。
 产物：output/input/input-20260503.md
 自检结果：warn
 缺口：需求方未确认审批层级
+补充方式：可在当前会话直接说明审批层级；如有正式流程图，建议保存为业务项目文档后重新执行 /pm-input。
 下一步唯一建议：/pm-align
 ```
