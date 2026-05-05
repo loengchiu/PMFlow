@@ -14,56 +14,57 @@ tags: [pmflow, fix, review, debt]
 - `contracts/human-sync.md`（人机同步契约）
 - `contracts/snapshot-diff.md`（快照 diff 契约）
 - `schemas/status.schema.yaml`（状态 schema）
-- `status.yaml` 中所有 `status: open` 的 `fix_debts`
 
-## 2. 前置检查
+## 2. 执行顺序
 
-读取 `.pmflow/status.yaml`，确认：
+### 步骤 1：读取所有 open fix_debts
 
-- `fix_debts` 中存在 `status: open` 的记录
+读取 `.pmflow/status.yaml` 中所有 `status: open` 的 `fix_debts`。
 
 如果没有 open 债务：停止，提示 PM 当前没有待收口的修改。
 
-## 3. 收口流程
+### 步骤 2：合并 affected_stages / affected_objects
 
-```text
-读取未收口变更
--> 合并影响范围
--> 检查人机同步
--> 检查跨产物同步
--> 检查同类关联点
--> 输出待收口项
--> 关闭已收口变更
--> 给出下一步建议
-```
+合并所有 open 债务的 `affected_stages` 和 `affected_objects`，按阶段分组，识别重复影响的对象。
 
-### 3.1 合并影响范围
+### 步骤 3：检查 changed_files 是否存在
 
-- 合并所有 open 债务的 `affected_stages` 和 `affected_objects`
-- 按阶段分组，识别重复影响的对象
-- 合并同阶段 review 债务
+对每条 open debt 的 `changed_files` 列表，检查文件是否存在于磁盘。不存在的标记为待处理项。
 
-### 3.2 人机同步检查
+### 步骤 4：检查 metadata_files 是否存在
 
-对每个受影响阶段：
+对每条 open debt 的 `metadata_files` 列表，检查文件是否存在于磁盘。不存在的标记为待处理项。
 
-- 检查人读产物与机读 metadata 是否一致
-- 检查快照是否已更新（`snapshot_records` 中对应 stage）
-- 检查阅读编号是否与 metadata 对应
+### 步骤 5：检查 snapshot_files 是否存在
 
-### 3.3 跨产物同步检查
+对每条 open debt 的 `snapshot_files` 列表，检查文件是否存在于磁盘。不存在的标记为待处理项。
 
-- 上游基线变更后，下游产物是否已同步
-- 未同步的产物是否存在风险
+### 步骤 6：检查 sync_status 与同步证据
 
-### 3.4 同类关联点检查
+对每条 open debt 的 `sync_status`：
 
-- 受影响对象是否存在同类关联
-- 批量修改是否覆盖所有关联点
+- `synced` → `changed_files`、`metadata_files`、`snapshot_files` 必须非空，且文件存在于磁盘。缺少文件证据必须 fail，不得 pass。
+- `partial` → `changed_files` 至少非空；缺失的 metadata/snapshot 进入 warnings 或 pending_items。
+- `pending` / `blocked` → 允许文件列表为空。
 
-## 4. 判定输出
+然后按 sync_status 判定：
 
-### 4.1 输出文件
+- `blocked` → fail
+- `pending` → warn 或 fail，取决于是否影响主链继续
+- `partial` → warn
+- `synced` → 可 pass（前提：文件证据完整）
+
+### 步骤 7：检查同类关联点
+
+- 同字段在多个页面出现。
+- 同操作在 PRD 和 prototype 都出现。
+- 上游 design 修改但下游 prd/prototype 未同步。
+
+### 步骤 8：合并 needs_stage_review
+
+收集所有 open debt 的 `needs_stage_review`，去重合并。
+
+### 步骤 9：输出审查文件
 
 写入 `.pmflow/reviews/fix-review-{timestamp}.yaml`。
 
@@ -73,39 +74,59 @@ tags: [pmflow, fix, review, debt]
 stage: fix
 check_type: reviewer_check
 verdict: pass | warn | fail
-debts_reviewed: []  # 本次审查的 debt_id 列表
+debts_reviewed: []
 merged_impact: {}
-  # 按阶段列出受影响对象
-pending_items: []   # 待收口项
-closed_debts: []    # 已关闭的 debt_id
-needs_stage_review: []  # 需要执行的阶段 review
+pending_items: []
+closed_debts: []
+needs_stage_review: []
 checked_at: ""
 ```
 
-### 4.2 判定标准
+### 步骤 10：verdict 为 pass/warn 时关闭债务并更新快照
+
+- 关闭已收口 debt（`status: closed`）。
+- 写 `closed_at`（ISO 时间）。
+- 写 `close_reason`（收口原因摘要）。
+- 更新相关 snapshot 和 `snapshot_records`（/pm-fix-review 是修改收口动作，不是阶段 reviewer，可在收口时更新快照）。
+
+### 步骤 11：verdict 为 fail 时不关闭 debt
+
+- 不关闭任何 debt。
+- 不更新 snapshot 或 `snapshot_records`。
+- 输出待处理项。
+
+### 步骤 12：输出下一步
+
+- fail：继续 `/pm-fix`。
+- pass/warn 且 `needs_stage_review` 非空：提示手动执行对应阶段 review。
+- pass/warn 且不需要阶段 review：提示回到正常主链，由 PM 手动执行下一命令或 `/pm-guide` 查看。
+
+### 步骤 13：停止
+
+输出收口结果后**必须停止**。不得自动执行阶段 review，不得自动执行 /pm-fix。
+
+## 3. 判定标准
 
 **fail**（任一满足）：
 
+- sync_status 为 `blocked`
 - 人机同步不一致且未处理
 - 跨产物同步缺失且未提示风险
 - 关键关联点遗漏
 
 **warn**：
 
+- sync_status 为 `partial` 或 `pending`
 - 存在风险但不阻断
 - 部分同步待完善
 
 **pass**：
 
-- 本批变更已收口
+- 所有 debt sync_status 为 `synced`
 - 人机同步一致
 - 跨产物同步完整或已提示风险
 
-### 4.3 关闭债务
-
-verdict 为 pass 或 warn 时，将已收口的 debt 状态更新为 `closed`，记录 `closed_at`。
-
-## 5. 输出格式
+## 4. 输出格式
 
 ```text
 fix-review 完成。
@@ -122,35 +143,18 @@ fix-review 完成。
 
 需要阶段 review：
 - /pm-design-review（原因：...）
-- /pm-prd-review（原因：...）
 
 下一步建议：
-- [如果有待收口项] 继续 /pm-fix 处理
-- [如果需要阶段 review] 手动执行 /pm-xxx-review
-- [如果全部收口] 回到正常主链
+- [fail] 继续 /pm-fix 处理
+- [pass/warn 且 needs_stage_review 非空] 手动执行 /pm-xxx-review
+- [pass/warn 且不需要阶段 review] 回到正常主链，/pm-guide 查看
 ```
 
-## 6. 停止条件
-
-- 输出收口结果后**必须停止**
-- 不得自动执行阶段 review
-- 不得自动执行 /pm-fix
-
-## 7. 禁止行为
+## 5. 禁止行为
 
 - 只复述变更，不检查同类关联点
 - 把正常修改循环强制绕到 /pm-guide
 - 必须阶段 review 的债务没有落状态
 - 自动执行阶段 review
-
-## 8. 使用示例
-
-```text
-用户：/pm-fix-review
-
-AI：fix-review 完成。
-审查结果：pass
-本批变更：共 2 条债务，已关闭 2 条
-需要阶段 review：/pm-design-review（原因：L3 变更涉及页面清单）
-下一步建议：手动执行 /pm-design-review
-```
+- fail 时更新 snapshot（fail 时不得关闭 debt、不得更新快照）
+- 阶段 reviewer 更新 snapshot（阶段 reviewer 只写 reviews/*.yaml 和 review_results；/pm-fix-review 是修改收口动作，不等同阶段 reviewer）

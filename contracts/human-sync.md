@@ -7,7 +7,7 @@ PM 可以直接修改人读主稿。任何人读物被修改后，下一次进�
 ```text
 人读物用自然名称，机读物用稳定 ID。
 ID 不暴露给需求方和评审会读者。
-relations 负责追溯、防幻觉和同步修改。
+metadata 分片与 trace 负责追溯、防幻觉和同步修改。
 ```
 
 ## 2. 人读物编号规则
@@ -65,9 +65,19 @@ change_event: CHANGE-20260503-001
 
 - 人读物内容与机读物一致。
 - 快照已更新（`snapshot_records` 中对应 stage 的 `synced_at` 已刷新）。
-- 受影响的 relations 已更新。
+- 受影响的 metadata 分片与 trace 已更新。
 
-## 7. 禁止行为
+## 7. 快照更新权限
+
+只有以下角色可以在同步完成时更新 snapshot：
+
+- 阶段 writer（生成完成并同步机读物后）
+- `/pm-fix`（完成同步并通过局部检查后）
+- `/pm-fix-review`（确认本批变更已收口后）
+
+**阶段 reviewer 不更新 snapshot**。阶段 reviewer 只写 `.pmflow/reviews/*.yaml` 和 `status.review_results`。/pm-fix-review 不属于阶段 reviewer，可按收口规则更新 snapshot。
+
+## 8. 禁止行为
 
 - PM 插入一个页面后，要求 PM 手工重排所有页面编号。
 - 页面排序变化导致所有 `PAGE-*` ID 重建。

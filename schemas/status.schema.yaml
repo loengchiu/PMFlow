@@ -235,6 +235,10 @@ fields:
         - change_level
         - source_stage
         - description
+        - changed_files
+        - metadata_files
+        - snapshot_files
+        - sync_status
         - created_at
         - status
       properties:
@@ -260,6 +264,22 @@ fields:
           type: array
           items: string
           description: 受影响的对象 ID 或名称列表
+        changed_files:
+          type: array
+          items: string
+          description: 本次实际修改过的人读产物或原型文件
+        metadata_files:
+          type: array
+          items: string
+          description: 本次同步修改过的 metadata 文件
+        snapshot_files:
+          type: array
+          items: string
+          description: 本次更新过的 snapshot 文件
+        sync_status:
+          type: enum
+          values: [synced, partial, pending, blocked]
+          description: "同步状态：synced 已同步 / partial 部分同步 / pending 只登记未修改 / blocked 无法定位或 L5"
         needs_stage_review:
           type: array
           items: string
@@ -274,6 +294,9 @@ fields:
         closed_at:
           type: string
           format: iso8601
+        close_reason:
+          type: string
+          description: 收口原因摘要
 
   snapshot_records:
     type: array

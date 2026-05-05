@@ -5,7 +5,7 @@
 ## 1. 快照位置
 
 ```text
-.pmflow/snapshots/<stage>/<stage>.last-synced.md
+.pmflow/snapshots/<stage>/<stage>.last-synced.*
 ```
 
 示例：
@@ -15,7 +15,7 @@
 .pmflow/snapshots/design/design.last-synced.md
 .pmflow/snapshots/wireframe/wireframe.last-synced.md
 .pmflow/snapshots/prd/prd.last-synced.md
-.pmflow/snapshots/prototype/prototype.last-synced.md
+.pmflow/snapshots/prototype/prototype.last-synced.html
 ```
 
 ## 2. 快照更新时机
@@ -25,9 +25,10 @@
 - 阶段 writer 生成完成，并同步机读物后。
 - `/pm-fix` 完成同步，并通过局部检查后。
 - `/pm-fix-review` 确认本批变更已收口后。
-- 阶段 review 通过后。
 
 **禁止**在 PM 刚手工修改人读物后立即更新快照，否则未同步变更会被吞掉。
+
+**阶段 reviewer 不更新 snapshot**。/pm-fix-review 不属于阶段 reviewer，可按收口规则更新 snapshot。snapshot diff 是 `/pm-fix` 的确定性输入来源，不是主流程脚本驱动。
 
 ## 3. diff 机制
 

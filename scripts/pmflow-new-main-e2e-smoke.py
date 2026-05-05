@@ -1867,6 +1867,332 @@ def test48_legacy_skill_marked():
 
 
 # ============================================================
+# TEST 49: /pm-fix 示例不直接推荐阶段 review
+# ============================================================
+def test49_pm_fix_no_stage_review_in_output():
+    print(f'\n{CYAN}=== TEST 49: /pm-fix 示例不直接推荐阶段 review ==={RESET}')
+    repo_root = Path(__file__).resolve().parent.parent
+    skill_path = repo_root / 'skills' / 'pm-fix' / 'SKILL.md'
+
+    assert_that('pm-fix-no-stage', 'SKILL.md 存在', skill_path.exists())
+    if not skill_path.exists():
+        return
+
+    text = skill_path.read_text(encoding='utf-8')
+
+    # 提取 §4 输出示例区域
+    import re
+    m = re.search(r'## 4\..*?\n(.*?)(?=## 5\.)', text, re.DOTALL)
+    section4 = m.group(1) if m else ''
+
+    # 不直接推荐阶段 review
+    stage_reviews = [
+        '下一步建议：/pm-design-review',
+        '下一步建议：/pm-wireframe-review',
+        '下一步建议：/pm-prd-review',
+        '下一步建议：/pm-prototype-review',
+    ]
+    for sr in stage_reviews:
+        assert_that('pm-fix-no-stage',
+                    f'示例不包含 "{sr}"',
+                    sr not in text,
+                    f'发现 in 全文')
+
+    # 不直接推荐"唯一建议：/pm-xxx-review"（除 /pm-fix-review）
+    other_reviews = ['/pm-design-review', '/pm-wireframe-review', '/pm-prd-review', '/pm-prototype-review']
+    for sr in other_reviews:
+        assert_that('pm-fix-no-stage',
+                    f'全文不包含"下一步唯一建议：{sr}"',
+                    f'下一步唯一建议：{sr}' not in text)
+
+
+# ============================================================
+# TEST 50: /pm-fix 示例必须包含 /pm-fix-review 唯一建议
+# ============================================================
+def test50_pm_fix_must_recommend_fix_review():
+    print(f'\n{CYAN}=== TEST 50: /pm-fix 示例必须包含 /pm-fix-review ==={RESET}')
+    repo_root = Path(__file__).resolve().parent.parent
+    skill_path = repo_root / 'skills' / 'pm-fix' / 'SKILL.md'
+
+    assert_that('pm-fix-must-review', 'SKILL.md 存在', skill_path.exists())
+    if not skill_path.exists():
+        return
+
+    text = skill_path.read_text(encoding='utf-8')
+
+    # 必须包含"下一步唯一建议：/pm-fix-review"
+    assert_that('pm-fix-must-review',
+                '包含"下一步唯一建议：/pm-fix-review"',
+                '下一步唯一建议：/pm-fix-review' in text)
+
+    # 输出示例中必须有 fix_debts 已登记
+    assert_that('pm-fix-must-review',
+                '包含"fix_debts 已登记"',
+                'fix_debts 已登记' in text)
+
+
+# ============================================================
+# TEST 51: status schema fix_debts 包含新字段
+# ============================================================
+def test51_schema_fix_debts_new_fields():
+    print(f'\n{CYAN}=== TEST 51: status schema fix_debts 新字段 ==={RESET}')
+    repo_root = Path(__file__).resolve().parent.parent
+    schema_path = repo_root / 'schemas' / 'status.schema.yaml'
+
+    assert_that('fix-debts-fields', 'status.schema.yaml 存在', schema_path.exists())
+    if not schema_path.exists():
+        return
+
+    with open(schema_path, 'r', encoding='utf-8') as f:
+        schema = yaml.safe_load(f)
+
+    fix_debts = schema.get('fields', {}).get('fix_debts', {})
+    props = fix_debts.get('items', {}).get('properties', {})
+
+    required_new_fields = ['changed_files', 'metadata_files', 'snapshot_files', 'sync_status', 'close_reason']
+    for field in required_new_fields:
+        assert_that('fix-debts-fields',
+                    f'fix_debts 包含 {field}',
+                    field in props,
+                    f'现有字段: {list(props.keys())}')
+
+
+# ============================================================
+# TEST 52: sync_status 枚举值
+# ============================================================
+def test52_sync_status_enum():
+    print(f'\n{CYAN}=== TEST 52: sync_status 枚举包含 synced/partial/pending/blocked ==={RESET}')
+    repo_root = Path(__file__).resolve().parent.parent
+    schema_path = repo_root / 'schemas' / 'status.schema.yaml'
+
+    assert_that('sync-status-enum', 'status.schema.yaml 存在', schema_path.exists())
+    if not schema_path.exists():
+        return
+
+    with open(schema_path, 'r', encoding='utf-8') as f:
+        schema = yaml.safe_load(f)
+
+    fix_debts = schema.get('fields', {}).get('fix_debts', {})
+    props = fix_debts.get('items', {}).get('properties', {})
+    sync_status = props.get('sync_status', {})
+    values = sync_status.get('values', [])
+
+    expected = ['synced', 'partial', 'pending', 'blocked']
+    for v in expected:
+        assert_that('sync-status-enum',
+                    f'sync_status 枚举包含 {v}',
+                    v in values,
+                    f'实际值: {values}')
+
+
+# ============================================================
+# TEST 53: /pm-fix-reviewer 包含关键检查步骤
+# ============================================================
+def test53_pm_fix_reviewer_checks():
+    print(f'\n{CYAN}=== TEST 53: /pm-fix-reviewer 关键检查步骤 ==={RESET}')
+    repo_root = Path(__file__).resolve().parent.parent
+    skill_path = repo_root / 'skills' / 'pm-fix-reviewer' / 'SKILL.md'
+
+    assert_that('fix-reviewer-checks', 'SKILL.md 存在', skill_path.exists())
+    if not skill_path.exists():
+        return
+
+    text = skill_path.read_text(encoding='utf-8')
+
+    checks = [
+        ('合并 open fix_debts', 'open'),
+        ('检查 changed_files', 'changed_files'),
+        ('检查 metadata_files', 'metadata_files'),
+        ('检查 snapshot_files', 'snapshot_files'),
+        ('检查 sync_status', 'sync_status'),
+        ('合并 needs_stage_review', 'needs_stage_review'),
+        ('pass/warn 关闭 debt', 'closed'),
+        ('fail 不关闭 debt', '不关闭'),
+    ]
+    for desc, keyword in checks:
+        assert_that('fix-reviewer-checks',
+                    f'包含 {desc}',
+                    keyword in text,
+                    f'未找到 "{keyword}"')
+
+
+# ============================================================
+# TEST 54: pm-guide open fix_debts 最高优先推荐 /pm-fix-review
+# ============================================================
+def test54_pm_guide_fix_debt_priority():
+    print(f'\n{CYAN}=== TEST 54: pm-guide open fix_debts 推荐 /pm-fix-review ==={RESET}')
+    repo_root = Path(__file__).resolve().parent.parent
+    skill_path = repo_root / 'skills' / 'pm-guide' / 'SKILL.md'
+
+    assert_that('guide-fix-priority', 'SKILL.md 存在', skill_path.exists())
+    if not skill_path.exists():
+        return
+
+    text = skill_path.read_text(encoding='utf-8')
+
+    # pm-guide §3.1 必须先检查 fix_debts
+    assert_that('guide-fix-priority',
+                '包含 fix_debts 优先检查',
+                'fix_debts' in text)
+    assert_that('guide-fix-priority',
+                'open fix_debts 推荐 /pm-fix-review',
+                '/pm-fix-review' in text)
+
+    # 验证 §3.1 在 §3.2 之前（优先级最高）
+    import re
+    m_31 = re.search(r'###\s*3\.1\b', text)
+    m_32 = re.search(r'###\s*3\.2\b', text)
+    if m_31 and m_32:
+        assert_that('guide-fix-priority',
+                    '§3.1 在 §3.2 之前',
+                    m_31.start() < m_32.start())
+
+
+# ============================================================
+# TEST 55: fix_debts required_fields 包含新增字段
+# ============================================================
+def test55_fix_debts_required_fields():
+    print(f'\n{CYAN}=== TEST 55: fix_debts required_fields 新增字段 ==={RESET}')
+    repo_root = Path(__file__).resolve().parent.parent
+    schema_path = repo_root / 'schemas' / 'status.schema.yaml'
+
+    assert_that('fix-debts-req', 'status.schema.yaml 存在', schema_path.exists())
+    if not schema_path.exists():
+        return
+
+    with open(schema_path, 'r', encoding='utf-8') as f:
+        schema = yaml.safe_load(f)
+
+    fix_debts = schema.get('fields', {}).get('fix_debts', {})
+    req = fix_debts.get('items', {}).get('required_fields', [])
+
+    for field in ['changed_files', 'metadata_files', 'snapshot_files', 'sync_status']:
+        assert_that('fix-debts-req',
+                    f'required_fields 包含 {field}',
+                    field in req,
+                    f'实际: {req}')
+
+
+# ============================================================
+# TEST 56: snapshot-diff prototype 示例为 .html
+# ============================================================
+def test56_snapshot_diff_prototype_html():
+    print(f'\n{CYAN}=== TEST 56: snapshot-diff prototype 示例为 .html ==={RESET}')
+    repo_root = Path(__file__).resolve().parent.parent
+    path = repo_root / 'contracts' / 'snapshot-diff.md'
+
+    assert_that('snap-diff-html', 'snapshot-diff.md 存在', path.exists())
+    if not path.exists():
+        return
+
+    text = path.read_text(encoding='utf-8')
+
+    # prototype 示例必须是 .html
+    assert_that('snap-diff-html',
+                'prototype 示例为 prototype.last-synced.html',
+                'prototype.last-synced.html' in text)
+
+    # 其他 md 阶段保持 .md
+    assert_that('snap-diff-html',
+                'design 示例为 design.last-synced.md',
+                'design.last-synced.md' in text)
+    assert_that('snap-diff-html',
+                'prd 示例为 prd.last-synced.md',
+                'prd.last-synced.md' in text)
+
+
+# ============================================================
+# TEST 57: pm-fix-reviewer pass/warn 可更新 snapshot，fail 不更新
+# ============================================================
+def test57_fix_reviewer_snapshot_permissions():
+    print(f'\n{CYAN}=== TEST 57: pm-fix-reviewer snapshot 权限 ==={RESET}')
+    repo_root = Path(__file__).resolve().parent.parent
+    skill_path = repo_root / 'skills' / 'pm-fix-reviewer' / 'SKILL.md'
+
+    assert_that('fix-reviewer-snap', 'SKILL.md 存在', skill_path.exists())
+    if not skill_path.exists():
+        return
+
+    text = skill_path.read_text(encoding='utf-8')
+
+    # pass/warn 时可更新 snapshot
+    assert_that('fix-reviewer-snap',
+                'pass/warn 时可更新 snapshot',
+                '更新相关 snapshot' in text or '更新 snapshot' in text)
+
+    # fail 时不得更新 snapshot
+    assert_that('fix-reviewer-snap',
+                'fail 时不得更新 snapshot',
+                '不更新 snapshot' in text)
+
+    # 明确 /pm-fix-review 不等同阶段 reviewer
+    assert_that('fix-reviewer-snap',
+                '明确不等同阶段 reviewer',
+                '阶段 reviewer' in text)
+
+
+# ============================================================
+# TEST 58: pm-fix-reviewer synced 时三个文件列表必须非空
+# ============================================================
+def test58_synced_evidence_rules():
+    print(f'\n{CYAN}=== TEST 58: pm-fix-reviewer synced 证据规则 ==={RESET}')
+    repo_root = Path(__file__).resolve().parent.parent
+    skill_path = repo_root / 'skills' / 'pm-fix-reviewer' / 'SKILL.md'
+
+    assert_that('synced-evidence', 'SKILL.md 存在', skill_path.exists())
+    if not skill_path.exists():
+        return
+
+    text = skill_path.read_text(encoding='utf-8')
+
+    # synced 时文件列表必须非空
+    assert_that('synced-evidence',
+                'synced 时 changed_files 必须非空',
+                'changed_files' in text and '非空' in text)
+    assert_that('synced-evidence',
+                'synced 时 metadata_files 必须非空',
+                'metadata_files' in text and '非空' in text)
+    assert_that('synced-evidence',
+                'synced 时 snapshot_files 必须非空',
+                'snapshot_files' in text and '非空' in text)
+
+    # synced 但缺少证据必须 fail
+    assert_that('synced-evidence',
+                '缺少文件证据必须 fail',
+                '缺少文件证据' in text and 'fail' in text)
+
+
+# ============================================================
+# TEST 59: human-sync 不再包含 relations 负责追溯
+# ============================================================
+def test59_human_sync_no_relations():
+    print(f'\n{CYAN}=== TEST 59: human-sync 不再包含 relations 负责追溯 ==={RESET}')
+    repo_root = Path(__file__).resolve().parent.parent
+    path = repo_root / 'contracts' / 'human-sync.md'
+
+    assert_that('no-relations', 'human-sync.md 存在', path.exists())
+    if not path.exists():
+        return
+
+    text = path.read_text(encoding='utf-8')
+
+    # 不再包含 "relations 负责追溯"
+    assert_that('no-relations',
+                '不包含 "relations 负责追溯"',
+                'relations 负责追溯' not in text)
+
+    # 改成 metadata 分片与 trace
+    assert_that('no-relations',
+                '包含 "metadata 分片与 trace 负责追溯"',
+                'metadata 分片与 trace 负责追溯' in text)
+
+    # "受影响的 metadata 分片与 trace 已更新"
+    assert_that('no-relations',
+                '包含 "受影响的 metadata 分片与 trace 已更新"',
+                '受影响的 metadata 分片与 trace 已更新' in text)
+
+
+# ============================================================
 # Main
 # ============================================================
 if __name__ == '__main__':
@@ -1920,6 +2246,17 @@ if __name__ == '__main__':
     test46_no_placeholder_residue()
     test47_reviewer_no_snapshot_side_effects()
     test48_legacy_skill_marked()
+    test49_pm_fix_no_stage_review_in_output()
+    test50_pm_fix_must_recommend_fix_review()
+    test51_schema_fix_debts_new_fields()
+    test52_sync_status_enum()
+    test53_pm_fix_reviewer_checks()
+    test54_pm_guide_fix_debt_priority()
+    test55_fix_debts_required_fields()
+    test56_snapshot_diff_prototype_html()
+    test57_fix_reviewer_snapshot_permissions()
+    test58_synced_evidence_rules()
+    test59_human_sync_no_relations()
 
     print(f'\n{MAGENTA}========================================{RESET}')
     print(f'{MAGENTA}  New Main Chain E2E Summary{RESET}')

@@ -9,42 +9,67 @@ tags: [pmflow, fix, modify]
 
 ## 1. 前置读取
 
+执行前必须读取：
+
 - `contracts/review-debt.md`（复查债务契约，变更等级定义）
 - `contracts/human-sync.md`（人机同步契约）
 - `contracts/snapshot-diff.md`（快照 diff 契约）
 - `schemas/status.schema.yaml`（状态 schema）
-- `.pmflow/status.yaml`（当前状态）
-- 当前阶段相关产物和 metadata（根据 PM 描述定位）
 
-## 2. 前置检查
+## 2. 执行顺序
 
-读取 `.pmflow/status.yaml`，确认：
+按以下顺序严格执行，不得跳步：
 
-- 存在 `status: open` 的 `fix_debts` 且 `change_level: L5`：停止，提示 PM 需求目标/范围/建设类型变化应回到 /pm-align
-- `current_stage` 为 `uninitialized`：停止，提示项目未初始化
+### 步骤 1：读取 status
 
-## 3. 执行步骤
+读取 `.pmflow/status.yaml`。如果文件不存在：停止，提示项目未初始化。
 
-### 3.1 解析修改描述
+### 步骤 2：检查 uninitialized
+
+如果 `current_stage = uninitialized`：停止，提示项目未初始化。
+
+### 步骤 3：检查 open L5 debt
+
+如果 `fix_debts` 中存在 `status: open` 且 `change_level: L5` 的记录：停止，提示 PM 需求目标/范围/建设类型变化应回到 `/pm-align`。
+
+### 步骤 4：读取 PM 输入
 
 从 PM 的自然语言描述中提取：
 
-- 修改对象（页面、字段、流程、规则等）
+- 修改对象（页面、字段、流程、规则、操作、原型交互）
 - 修改内容（改成什么、补充什么）
 - 涉及阶段（design / wireframe / prd / prototype）
 
-无法唯一定位修改对象时：停止，向 PM 确认。
+### 步骤 5：读取相关 snapshot
 
-### 3.2 定位影响阶段
+读取 `.pmflow/snapshots/<stage>/<stage>.last-synced.*`，作为 diff 基线。
 
-判断修改影响哪些阶段的产物：
+### 步骤 6：读取当前人读产物
 
-- 仅 wireframe 表达问题（页面布局、导航、落点）→ 影响 wireframe
-- design 事实变化（字段、流程、规则、页面增删）→ 影响 design + 下游
-- PRD 表达问题（规则描述、异常处理）→ 影响 prd
-- prototype 表达问题（交互、布局偏差）→ 影响 prototype
+读取 PM 所指阶段的当前人读产物文件。
 
-### 3.3 判断变更等级
+### 步骤 7：做 diff 判断
+
+- PM 明确描述了修改点时：以 PM 描述为主。
+- PM 只说"我改了文档，你同步一下"时：必须用 snapshot diff 找出变更片段。
+- **禁止**把当前全文和快照全文同时塞进上下文。
+
+### 步骤 8：定位对象
+
+根据 diff 或 PM 描述定位受影响对象：
+
+- 页面
+- 字段
+- 流程
+- 规则
+- 操作
+- 原型交互
+
+### 步骤 9：无法定位时停止
+
+无法唯一定位对象时：停止，向 PM 确认。**不得猜**。
+
+### 步骤 10：判断变更等级
 
 按 `contracts/review-debt.md` 判断：
 
@@ -56,21 +81,54 @@ tags: [pmflow, fix, modify]
 | L4 | 跨模块主流程、核心业务对象、多个下游产物 |
 | L5 | 需求目标、范围、建设类型变化（不按 fix 处理） |
 
-L5：停止，建议回到 /pm-align。
+### 步骤 11：判断影响阶段
 
-### 3.4 执行局部修改
+判断修改影响哪些阶段的产物：
 
-L1/L2 可安全局部修改：
+- 仅 wireframe 表达问题 → 影响 wireframe
+- design 事实变化 → 影响 design + 下游
+- PRD 表达问题 → 影响 prd
+- prototype 表达问题 → 影响 prototype
+
+### 步骤 12：L1/L2 局部修改
+
+对 L1/L2 可安全局部修改：
 
 - 修改对应产物文件
 - 同步 metadata
 - 更新 snapshot
+- 写 `sync_status: synced` 或 `partial`
 
-L3/L4：不直接修改产物，只登记债务，建议阶段 review。
+### 步骤 13：L3/L4 处理
 
-### 3.5 写入 fix_debts
+对 L3/L4：
 
-在 `.pmflow/status.yaml` 的 `fix_debts` 中追加：
+- 可以在能明确同步的范围内局部修改。
+- 必须登记 `needs_stage_review`。
+- 若无法安全同步，只登记 `sync_status: pending`。
+
+### 步骤 14：L5 处理
+
+对 L5：
+
+- 不按 fix 修改。
+- 登记债务或提示回到 `/pm-align`。
+
+### 步骤 15：写入 fix_debts
+
+在 `.pmflow/status.yaml` 的 `fix_debts` 中追加记录，完整字段见 §3。
+
+### 步骤 16：输出下一步唯一建议
+
+输出：`下一步唯一建议：/pm-fix-review`
+
+只要本轮写入了 `status: open` 的 fix_debts，下一步唯一建议必须是 `/pm-fix-review`。阶段 review 建议由 `/pm-fix-review` 根据 `needs_stage_review` 输出，/pm-fix 不得直接建议阶段 review。
+
+### 步骤 17：停止
+
+输出修改结果和建议后**必须停止**。不得自动执行任何 review 命令，不得自动进入下一阶段。
+
+## 3. fix_debts 记录格式
 
 ```yaml
 fix_debts:
@@ -79,62 +137,52 @@ fix_debts:
     source_stage: wireframe
     affected_stages: [prd, prototype]
     description: PM 修改描述摘要
-    affected_objects: [受影响对象 ID]
+    affected_objects: [受影响对象 ID 或名称]
+    changed_files: [本次实际修改过的人读产物或原型文件]
+    metadata_files: [本次同步修改过的 metadata 文件]
+    snapshot_files: [本次更新过的 snapshot 文件]
+    sync_status: synced | partial | pending | blocked
     needs_stage_review: [wireframe]
     created_at: {ISO 时间}
     status: open
 ```
 
-### 3.6 更新快照
+`sync_status` 含义：
 
-修改产物后，同步更新 `.pmflow/snapshots/` 中对应快照。
+- `synced`：人读物、metadata、snapshot 已同步。
+- `partial`：已修改部分文件，但仍有明确待同步项。
+- `pending`：只登记债务，尚未实际修改。
+- `blocked`：无法定位对象或属于 L5，不继续执行。
 
-## 4. 输出规则
+## 4. 输出示例
 
-只要本轮写入了 `status: open` 的 fix_debts，下一步唯一建议必须是 `/pm-fix-review`。阶段 review 建议由 `/pm-fix-reviewer` 根据 `needs_stage_review` 输出，/pm-fix 不得直接建议阶段 review。
-
-### 4.1 只影响 wireframe 表达（L1/L2 局部修改）
+### L1/L2 局部修改完成
 
 ```text
-定向修改完成。
+/pm-fix 完成修改或登记债务。
 
 修改对象：{对象}
-变更等级：L{N}
+变更等级：L2
 修改内容：{摘要}
 
 产物已更新：
 - output/wireframe/wireframe.md
 - .pmflow/metadata/wireframe/index.yaml
 
-fix_debts 已登记（{N} 条 open）。
-
+fix_debts 已登记（1 条 open）。
 下一步唯一建议：/pm-fix-review
 ```
 
-### 4.2 影响 design 事实或其他阶段
+### L3/L4 只登记债务
 
 ```text
-定向修改完成。
+/pm-fix 完成修改或登记债务。
 
 修改对象：{对象}
-变更等级：L{N}
+变更等级：L3
 影响阶段：design, wireframe, prd, prototype
 
-fix_debts 已登记（{N} 条 open）。
-
-下一步唯一建议：/pm-fix-review
-```
-
-### 4.3 多处修改或跨产物影响
-
-```text
-定向修改完成。
-
-修改对象：{对象}
-变更等级：L{N}
-
-fix_debts 已登记（{N} 条 open）。
-
+fix_debts 已登记（1 条 open）。
 下一步唯一建议：/pm-fix-review
 ```
 
@@ -143,6 +191,7 @@ fix_debts 已登记（{N} 条 open）。
 - 输出修改结果和建议后**必须停止**
 - 不得自动执行任何 review 命令
 - 不得自动进入下一阶段
+- 不得提示"要我现在做吗"
 
 ## 6. 禁止行为
 
@@ -152,29 +201,4 @@ fix_debts 已登记（{N} 条 open）。
 - 不写 pm_confirmations、approved_baselines、next_allowed_commands
 - 不提示 /pm-confirm
 - 不在无法唯一定位修改对象时强行修改
-
-## 7. 使用示例
-
-```text
-用户：/pm-fix
-待审批列表中点击详情应该是跳转新页面，而不是展开抽屉。
-
-AI：（解析修改描述，定位到 prototype 层交互偏差）
-AI：定向修改完成。
-    修改对象：待审批列表-详情操作
-    变更等级：L2
-    产物已更新：output/prototype/prototype.md
-    下一步建议：/pm-prototype-review
-```
-
-```text
-用户：/pm-fix
-"计划类型"字段应该改成枚举，不是自由文本。
-
-AI：（定位到 design 字段定义，影响 design + 下游）
-AI：定向修改完成。
-    修改对象：FIELD-PLAN-TYPE
-    变更等级：L3
-    fix_debts 已登记（1 条 open）。
-    下一步建议：/pm-design-review
-```
+- 不直接建议阶段 review（由 /pm-fix-review 根据 needs_stage_review 给出）

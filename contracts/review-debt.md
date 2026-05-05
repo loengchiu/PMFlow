@@ -24,6 +24,10 @@ fix_debts:
     affected_stages: [prd, prototype]
     description: 修改"计划类型"字段为枚举
     affected_objects: [FIELD-PLAN-TYPE, PAGE-AUDIT-PLAN-FORM]
+    changed_files: [output/design/design.md]
+    metadata_files: [.pmflow/metadata/design/index.yaml]
+    snapshot_files: [.pmflow/snapshots/design/design.last-synced.md]
+    sync_status: synced
     needs_stage_review: [design]
     created_at: 2026-05-03T10:00:00
     status: open
@@ -37,7 +41,7 @@ fix_debts:
 2. 合并同阶段 review 债务。
 3. 按上游到下游判断仍需哪些阶段 review。
 4. 输出待收口项（具体到对象、产物和问题）。
-5. 关闭已收口债务（`status: closed`）。
+5. 关闭已收口债务（`status: closed`），写 `closed_at` 和 `close_reason`。
 6. 给出下一步建议。
 
 ## 4. 阶段 review 触发规则
