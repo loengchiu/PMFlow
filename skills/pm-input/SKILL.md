@@ -10,6 +10,7 @@ tags: [pmflow, input, material]
 ## 1. 前置读取
 
 - `contracts/gates.md`（门禁定义）
+- `contracts/lightweight-metadata.md`（轻量 metadata 契约）
 - `schemas/status.schema.yaml`（状态 schema）
 - `profiles/input.profile.yaml`（input 产物契约）
 - `templates/input.md`（材料盘点稿骨架）
@@ -145,6 +146,8 @@ tags: [pmflow, input, material]
 
 - `current_stage: input`
 - `artifacts.input` 追加新文件路径
+- `stage_revisions.input.artifact_revision` 刷新为当前 ISO 时间
+- `stage_revisions.input.metadata_revision` 刷新为当前 ISO 时间
 
 ### 4.4 自检
 

@@ -166,6 +166,15 @@ output/prototype/
 
 这些文件给 AI 和校验脚本读，用于阶段判断、来源追溯、review 绑定和修改同步。
 
+## metadata 原则
+
+- PMFlow 不做内嵌 metadata。
+- metadata 是外部轻量索引。
+- 人读物是事实主体。
+- metadata 只做索引/关系/来源/revision/coverage。
+- 修改当前阶段用当前阶段命令；阶段通过后局部修改用 /pm-fix。
+- /pm-fix 不复制正文到 metadata，只同步索引和关系。
+
 ## 推进规则
 
 - writer 负责生成当前阶段产物。
@@ -181,11 +190,18 @@ output/prototype/
 
 推荐在新会话或独立 agent 中执行 review，确保审查独立于 writer 会话。
 
-- Claude Code：可使用 subagent 或新会话执行 reviewer。
+- Claude Code：优先使用 `pmflow-reviewer` subagent 执行审查。执行 `/agents` 应能看到 `pmflow-reviewer`。执行 review 时，最终输出应说明是否使用 subagent 及 subagent 名称。
 - Trae-CN：默认按独立审查模式执行。
 - 其他宿主：默认按独立审查模式执行。
 
 独立审查模式要求 reviewer 重新读取 status、产物、metadata 和 profile，不依赖 writer 会话结论。详见 `contracts/reviewer-independence.md`。
+
+## 阶段命令使用规则
+
+- 当前阶段还没 review 通过时，补充/修正回答用当前阶段命令（如 `/pm-align`、`/pm-design`）。
+- 当前阶段 review fail 后，用当前阶段命令修正。
+- 阶段 review 通过后再做局部修改，用 `/pm-fix`。
+- 需求目标、范围、建设类型变化，回 `/pm-align`。
 
 ## 常见情况
 

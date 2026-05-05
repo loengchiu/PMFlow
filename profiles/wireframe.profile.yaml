@@ -25,7 +25,7 @@ human_output_requirements:
   - 设计疑点汇总（汇总所有页面层暴露的问题）
 
 # 机读 metadata 要求
-# metadata 只做索引，不复制完整线框正文
+# metadata 只索引页面结构/跳转/状态，不复述线框说明全文
 machine_output_requirements:
   # 索引文件：.pmflow/metadata/wireframe/index.yaml
   index:
@@ -37,10 +37,11 @@ machine_output_requirements:
   # 页面清单
   pages: []
     # - id: WF-PAGE-001
-    #   name: 页面名称
+    #   name: 页面名称（不超过 40 字）
     #   type: list | form | detail | dashboard
     #   module: MOD-001
     #   design_page_ref: PAGE-001  # 来源 design 页面 ID
+    #   anchors: []
     #   sections:
     #     - name: 区域名称
     #       type: field_group | action_bar | status_display | exception_zone
@@ -69,7 +70,7 @@ machine_output_requirements:
   operation_entries: []
     # - id: WF-OP-001
     #   page: WF-PAGE-001
-    #   name: 操作名称
+    #   name: 操作名称（不超过 40 字）
     #   type: button | link | auto
     #   trigger_condition: 触发条件
     #   target_page: WF-PAGE-002
@@ -94,10 +95,10 @@ machine_output_requirements:
   # 设计疑点索引
   design_issues: []
     # - id: WF-ISSUE-001
-    #   question: 问题描述
+    #   question: 问题描述（不超过 80 字）
     #   affected_pages: [WF-PAGE-001]
     #   affected_flows: [FLOW-001]
-    #   suggestion: 建议处理
+    #   suggestion: 建议处理（不超过 60 字）
 
 # 上下文防爆规则
 context_control:
@@ -129,6 +130,13 @@ review_checklist:
     - 人读产物无机读字段泄漏
     - metadata 符合行数限制
 
+# 多轮同步规则
+multi_round_sync:
+  - 阶段命令支持多轮更新
+  - 当前阶段循环中的补充回答由当前阶段命令吸收
+  - 人读产物与 metadata 必须一致
+  - reviewer 发现不一致必须 fail
+
 # review 输出必填字段
 review_required_fields:
   - stage
@@ -139,3 +147,10 @@ review_required_fields:
   - checked_at
   - fail_reasons
   - warnings
+
+# 事实基线说明
+baseline_rule:
+  - wireframe 是页面组织和交互表达基线
+  - wireframe review 通过后，wireframe 成为 PRD / prototype 的页面表达参考
+  - wireframe 可以在职责范围内调整页面组织、跳转关系和信息呈现方式
+  - 只有改变上游核心目标、范围、建设类型、一期/二期边界或主流程方向时，才必须回到对应上游阶段

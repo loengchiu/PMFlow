@@ -39,6 +39,7 @@ human_output_requirements:
   - 不需要真实接口
 
 # 机读 metadata 要求
+# metadata 只索引页面/组件/交互/source refs，不保存 HTML/CSS
 machine_output_requirements:
   source_prd_artifact: ""
   source_prd_metadata: ""
@@ -46,17 +47,19 @@ machine_output_requirements:
   source_wireframe_metadata: ""
   pages: []
     # - page_id: PROTO-PAGE-001
-    #   page_name: 页面名称
+    #   page_name: 页面名称（不超过 40 字）
     #   page_type: list | detail | form | config | dashboard | approval
     #   prd_page_ref: PRD-PAGE-001
     #   wireframe_page_ref: WF-PAGE-001
     #   prototype_anchor: "#page-001"
     #   fields: []
     #   actions: []
+    #   source_refs: []
   flows: []
     # - id: FLOW-001
-    #   name: 主流程名
+    #   name: 主流程名（不超过 40 字）
     #   steps: []
+    #   source_refs: []
 
 # 上下文防爆规则
 context_control:
@@ -98,6 +101,13 @@ review_checklist:
     - 范围一致：未新增 PRD 未定义的业务内容
     - 人机分离：页面干净
 
+# 多轮同步规则
+multi_round_sync:
+  - 阶段命令支持多轮更新
+  - 当前阶段循环中的补充回答由当前阶段命令吸收
+  - 原型与 metadata 必须一致
+  - reviewer 发现不一致必须 fail
+
 # review 输出必填字段
 review_required_fields:
   - stage
@@ -110,3 +120,10 @@ review_required_fields:
   - warnings
   - checks_detail
   - reviewer
+
+# 事实基线说明
+baseline_rule:
+  - prototype 是高保真交互表达基线
+  - prototype review 通过后，prototype 作为主链终点产物
+  - prototype 可以把 PRD/wireframe 转成高保真交互表达
+  - 只有改变上游核心目标、范围、建设类型、一期/二期边界或主流程方向时，才必须回到对应上游阶段

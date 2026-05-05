@@ -67,7 +67,31 @@ fix_debts:
 - 如果"待审批列表"无法唯一定位，必须停止询问。
 - 如果需要新增详情页，必须同步 design、wireframe、PRD、prototype 及机读关系。这是 L3+。
 
-## 6. 禁止行为
+## 6. 同类关联点检测
+
+/pm-fix 必须做跨阶段同类关联点检测。检查范围至少包括：
+
+- 当前阶段人读产物
+- 当前阶段 metadata
+- 已存在的下游人读产物
+- 已存在的下游 metadata
+- snapshot diff
+
+输出中必须包含"同类关联点检查结果"：
+
+- 已同步修改：...
+- 建议同步但需 PM 确认：...
+- 未发现同类关联点：...
+
+如果发现多处存在同类内容但不确定是否同步，不得直接完成，必须问 PM。fix_debts 中必须记录 `affected_objects` 和 `affected_stages`。
+
+## 6.1 轻量 metadata 与 fix
+
+- /pm-fix 的同类关联点检测依赖 metadata 的索引和 relations。
+- /pm-fix 不应把正文复制到 metadata。
+- fix_debts 的 metadata_files 只记录被同步的索引/关系/trace 文件。
+
+## 7. 禁止行为
 
 - 连续多次 `/pm-fix` 后只能逐条 review，不能合并。
 - `/pm-fix-review` 只复述变更，不检查同类关联点。

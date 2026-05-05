@@ -13,6 +13,7 @@ tags: [pmflow, prd, writer, new_main]
 - `contracts/gates.md`（门禁定义）
 - `contracts/human-sync.md`（人机同步契约）
 - `contracts/snapshot-diff.md`（快照 diff 契约）
+- `contracts/lightweight-metadata.md`（轻量 metadata 契约）
 - `schemas/status.schema.yaml`（状态 schema）
 - `profiles/prd-new-main.profile.yaml`（PRD 产物契约）
 - `templates/prd.md`（PRD 人读骨架）
@@ -95,20 +96,23 @@ dictionary:
     type: string
     required: true
     format: RK-YYYYMMDD-NNN
-    source: 系统自动生成
-    description: 用于唯一标识一笔入库申请
+    anchors: []
+    source_refs: []
   - id: PRD-FIELD-QUANTITY
     name: 数量
     type: integer
     required: true
     min: 1
-    description: 本次申请入库的物资数量
+    anchors: []
+    source_refs: []
 ```
 
-- 每个实体列出字段（ID、名称、类型、必填、默认值、枚举值、说明）
+- 每个实体列出字段（ID、名称、类型、必填、默认值、枚举值、结构化约束）
 - 字段必须与各页面字段清单一致
 - 枚举值必须显式列出，不得用"等"模糊
 - 字段 ID 是唯一标识，pages/*.yaml 和 rules.yaml 通过 field_id 引用
+- 字段正式说明写在人读 PRD，metadata 只保留索引和约束
+- 如果确实需要字段短说明，只能用 short_statement，限制 80 字以内
 
 ### 3.4 逐页生成详细需求说明
 
@@ -181,7 +185,22 @@ actions:
 - 按需读取 design / wireframe metadata 分片，不一次性全量读取
 - 页面生成时只读取当前页面相关字段、规则、wireframe 信息
 
-## 5. 输出生成
+## 5. 多轮更新模式
+
+当前阶段已有产物且用户补充/修正时：
+
+- 先读取已有的人读产物、metadata 和 snapshot。
+- 判断用户输入影响的字段、页面、动作、规则、验收。
+- 同步更新人读产物、metadata、snapshot 和 status。
+- 不得只更新人读物，不更新 metadata；不得只更新 metadata，不更新人读物。
+- 当前阶段循环里的补充回答，不建议 /pm-fix。
+- 完成后下一步唯一建议仍是 /pm-prd-review。
+
+### 5.1 同类关联点检测
+
+当前阶段多轮更新时，必须扫描当前阶段产物中的同类关联点。能确定需要同步的当前阶段内容，必须同步修改。不确定的同类点，先问 PM。如果下游产物已存在且当前修改会影响下游，提示使用 /pm-fix 统一同步。
+
+## 6. 输出生成
 
 ### 5.1 人读产物
 
@@ -223,6 +242,8 @@ actions:
 - `current_stage: prd`
 - `artifacts.prd` 追加 `output/prd/prd.md`
 - `snapshot_records` 追加快照记录
+- `stage_revisions.prd.artifact_revision` 刷新为当前 ISO 时间
+- `stage_revisions.prd.metadata_revision` 刷新为当前 ISO 时间
 
 ## 6. 停止并报告
 

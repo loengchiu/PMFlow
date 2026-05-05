@@ -9,6 +9,14 @@ tags: [pmflow, fix, review, debt]
 
 按独立审查模式执行。不依赖 writer 会话结论，重新读取 status / artifact / metadata / profile 后再审查。
 
+## 0. 执行方式
+
+- Claude Code 环境下，如果 `pmflow-reviewer` subagent 可用，必须使用 `pmflow-reviewer` 执行审查，主会话不得直接做内容审查。
+- 主会话负责把本 SOP、当前阶段、项目路径传给 subagent，并接收 `PMFLOW-REVIEW-RESULT`。
+- 主会话根据 subagent 结果写入 review 文件，并追加 `.pmflow/status.yaml` 的 `review_results`。
+- 如果 Claude Code 环境下 `pmflow-reviewer` 不可用，必须在输出中说明原因，再按独立审查模式执行。
+- 非 Claude Code 环境按 `contracts/reviewer-independence.md` 的独立审查模式执行。
+
 ## 1. 前置读取
 
 - `contracts/reviewer-independence.md`（独立审查契约）
@@ -16,6 +24,7 @@ tags: [pmflow, fix, review, debt]
 - `contracts/review-debt.md`（复查债务契约）
 - `contracts/human-sync.md`（人机同步契约）
 - `contracts/snapshot-diff.md`（快照 diff 契约）
+- `contracts/lightweight-metadata.md`（轻量 metadata 契约）
 - `schemas/status.schema.yaml`（状态 schema）
 
 ## 2. 执行顺序
@@ -57,6 +66,10 @@ tags: [pmflow, fix, review, debt]
 - `partial` → warn
 - `synced` → 可 pass（前提：文件证据完整）
 
+### 步骤 6.5：检查同类关联点检测
+
+检查 /pm-fix 是否做了同类关联点检测。如果 fix_debts 缺少 `affected_objects` 或 `affected_stages`，fail。如果明显存在同类关联点但 /pm-fix 未处理也未询问 PM，fail。如果同类关联点已列出但待 PM 确认，verdict 可以 warn，但不得关闭债务。
+
 ### 步骤 7：检查同类关联点
 
 - 同字段在多个页面出现。
@@ -77,6 +90,8 @@ tags: [pmflow, fix, review, debt]
 stage: fix
 check_type: reviewer_check
 verdict: pass | warn | fail
+reviewed_artifact_revision: ""
+reviewed_metadata_revision: ""
 debts_reviewed: []
 merged_impact: {}
 pending_items: []
@@ -116,6 +131,7 @@ checked_at: ""
 - 人机同步不一致且未处理
 - 跨产物同步缺失且未提示风险
 - 关键关联点遗漏
+- 人读产物与 metadata 不一致
 
 **warn**：
 

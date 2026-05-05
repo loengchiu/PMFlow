@@ -9,10 +9,19 @@ tags: [pmflow, align, review]
 
 按独立审查模式执行。不依赖 writer 会话结论，重新读取 status / artifact / metadata / profile 后再审查。
 
+## 0. 执行方式
+
+- Claude Code 环境下，如果 `pmflow-reviewer` subagent 可用，必须使用 `pmflow-reviewer` 执行审查，主会话不得直接做内容审查。
+- 主会话负责把本 SOP、当前阶段、项目路径传给 subagent，并接收 `PMFLOW-REVIEW-RESULT`。
+- 主会话根据 subagent 结果写入 review 文件，并追加 `.pmflow/status.yaml` 的 `review_results`。
+- 如果 Claude Code 环境下 `pmflow-reviewer` 不可用，必须在输出中说明原因，再按独立审查模式执行。
+- 非 Claude Code 环境按 `contracts/reviewer-independence.md` 的独立审查模式执行。
+
 ## 1. 前置读取
 
 - `contracts/reviewer-independence.md`（独立审查契约）
 - `contracts/gates.md`（门禁定义，重点 reviewer 门禁）
+- `contracts/lightweight-metadata.md`（轻量 metadata 契约）
 - `schemas/status.schema.yaml`（状态 schema）
 - `profiles/align.profile.yaml`（align 产物契约，重点 review_checklist）
 - 最新 align 产物（`output/align/` 下最新文件）
@@ -32,12 +41,14 @@ tags: [pmflow, align, review]
 
 按 `profiles/align.profile.yaml` 中 `review_checklist` 逐项检查。
 
-### 3.1 材料登记检查
+### 3.1 来源追溯检查（input 只作来源索引）
 
-- 已提供材料是否完整登记
-- 关键材料是否标记来源和约束强度
-- 是否从材料中提取目标、角色、场景、字段线索、流程线索、规则线索
-- 材料缺口是否转成可问需求方的问题
+- 可以读取 input metadata 作为来源索引
+- 不再读取 input 人读产物作为事实审查对象
+- 不再做"input 材料是否完整登记"的当前阶段审查
+- align source_materials 是否能追溯关键来源
+- 如果 align 没有覆盖 input 中仍关键的未解决缺口，可 fail
+- input 旧口径如已被 align 覆盖，不得作为 warning/fail
 
 ### 3.2 对齐结果检查
 
@@ -69,9 +80,11 @@ warnings: []
 checked_at: ""
 reviewed_artifact: ""
 reviewed_metadata: ""
+reviewed_artifact_revision: ""
+reviewed_metadata_revision: ""
 ```
 
-`reviewed_artifact` 和 `reviewed_metadata` 为必填字段，必须等于本次审查的 align 产物路径和 metadata 路径。
+`reviewed_artifact` 和 `reviewed_metadata` 为必填字段，必须等于本次审查的 align 产物路径和 metadata 路径。`reviewed_artifact_revision` 和 `reviewed_metadata_revision` 必须等于 `stage_revisions.align` 中最新 revision。如果无法读取当前 revision，fail。
 
 ### 4.2 判定标准
 
@@ -86,6 +99,7 @@ reviewed_metadata: ""
 - 材料冲突没有暴露
 - 把 PM 假设、旧系统现状、参考材料当成需求方确认事实
 - align 已经越界写成详细设计
+- 人读产物与 metadata 不一致（必须回到 /pm-align 修正，不得建议 /pm-fix）
 
 **warn**：
 

@@ -87,7 +87,7 @@ prototype
   -> prototype review pass/warn：主链路完成；如需修改执行 /pm-fix
 ```
 
-review 结果判断必须取对应 stage 的最近一条记录。
+review 结果判断必须取对应 stage 的最近一条记录。同时校验 `reviewed_artifact_revision` 和 `reviewed_metadata_revision` 是否等于 `stage_revisions` 中当前阶段最新 revision。路径一致但 revision 不一致时，视为"产物已更新但尚未重新 review"，推荐当前阶段 reviewer，不得推荐下一阶段。
 
 ## 5. 输出格式
 

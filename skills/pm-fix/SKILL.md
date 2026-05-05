@@ -14,6 +14,7 @@ tags: [pmflow, fix, modify]
 - `contracts/review-debt.md`（复查债务契约，变更等级定义）
 - `contracts/human-sync.md`（人机同步契约）
 - `contracts/snapshot-diff.md`（快照 diff 契约）
+- `contracts/lightweight-metadata.md`（轻量 metadata 契约）
 - `schemas/status.schema.yaml`（状态 schema）
 
 ## 2. 执行顺序
@@ -65,6 +66,26 @@ tags: [pmflow, fix, modify]
 - 操作
 - 原型交互
 
+### 步骤 8.1：同类关联点检测
+
+必须做跨阶段同类关联点检测。检查范围至少包括：
+
+- 当前阶段人读产物
+- 当前阶段 metadata
+- 已存在的下游人读产物
+- 已存在的下游 metadata
+- snapshot diff
+
+输出中必须包含"同类关联点检查结果"：
+
+- 已同步修改：...
+- 建议同步但需 PM 确认：...
+- 未发现同类关联点：...
+
+如果发现多处存在同类内容但不确定是否同步，不得直接完成，必须问 PM。
+
+同类关联点检测基于 metadata 索引和 relations。如果人读物中出现关键对象但 metadata 无索引，应登记同步缺口。
+
 ### 步骤 9：无法定位时停止
 
 无法唯一定位对象时：停止，向 PM 确认。**不得猜**。
@@ -95,7 +116,7 @@ tags: [pmflow, fix, modify]
 对 L1/L2 可安全局部修改：
 
 - 修改对应产物文件
-- 同步 metadata
+- 同步 metadata（只同步索引、relations、anchors、source_refs、revision、coverage，不复制正文到 metadata）
 - 更新 snapshot
 - 写 `sync_status: synced` 或 `partial`
 

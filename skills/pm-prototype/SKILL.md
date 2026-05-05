@@ -13,6 +13,7 @@ tags: [pmflow, prototype, writer, new_main]
 - `contracts/gates.md`（门禁定义）
 - `contracts/human-sync.md`（人机同步契约）
 - `contracts/snapshot-diff.md`（快照 diff 契约）
+- `contracts/lightweight-metadata.md`（轻量 metadata 契约）
 - `schemas/status.schema.yaml`（状态 schema）
 - `profiles/prototype-new-main.profile.yaml`（原型产物契约）
 - `references/prototype-ui-style.md`（UI 风格参考）
@@ -111,7 +112,22 @@ tags: [pmflow, prototype, writer, new_main]
 - 过长时拆分为 `assets/style.css` 和 `assets/app.js`
 - 按需读取 PRD / wireframe / design metadata 分片，不一次性全量读取
 
-## 5. 输出生成
+## 5. 多轮更新模式
+
+当前阶段已有产物且用户补充/修正时：
+
+- 先读取已有的人读产物、metadata 和 snapshot。
+- 判断用户输入影响的页面、字段、动作、流程、交互。
+- 同步更新原型文件、metadata、snapshot 和 status。
+- 不得只更新原型，不更新 metadata；不得只更新 metadata，不更新原型。
+- 当前阶段循环里的补充回答，不建议 /pm-fix。
+- 完成后下一步唯一建议仍是 /pm-prototype-review。
+
+### 5.1 同类关联点检测
+
+当前阶段多轮更新时，必须扫描当前阶段产物中的同类关联点。能确定需要同步的当前阶段内容，必须同步修改。不确定的同类点，先问 PM。如果下游产物已存在且当前修改会影响下游，提示使用 /pm-fix 统一同步。
+
+## 6. 输出生成
 
 ### 5.1 原型文件
 
@@ -163,6 +179,8 @@ flows:
 - `current_stage: prototype`
 - `artifacts.prototype` 追加 `output/prototype/index.html`
 - `snapshot_records` 追加快照记录
+- `stage_revisions.prototype.artifact_revision` 刷新为当前 ISO 时间
+- `stage_revisions.prototype.metadata_revision` 刷新为当前 ISO 时间
 
 ## 6. 停止并报告
 

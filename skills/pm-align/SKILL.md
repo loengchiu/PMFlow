@@ -11,6 +11,7 @@ tags: [pmflow, align, requirement]
 
 - `contracts/gates.md`（门禁定义）
 - `contracts/human-sync.md`（人机同步契约）
+- `contracts/lightweight-metadata.md`（轻量 metadata 契约）
 - `schemas/status.schema.yaml`（状态 schema）
 - `profiles/input.profile.yaml`（input 产物契约，理解输入结构）
 - `profiles/align.profile.yaml`（align 产物契约）
@@ -90,6 +91,21 @@ tags: [pmflow, align, requirement]
 - 范围变化
 - 详细设计线索
 
+### 4.1 多轮更新模式
+
+当前阶段已有产物且用户补充/修正时：
+
+- 先读取已有的人读产物、metadata 和 snapshot。
+- 判断用户输入影响的业务对象、范围、角色、场景。
+- 同步更新人读产物、metadata、snapshot 和 status。
+- 不得只更新人读物，不更新 metadata；不得只更新 metadata，不更新人读物。
+- 当前阶段循环里的补充回答，不建议 /pm-fix。
+- 完成后下一步唯一建议仍是 /pm-align-review。
+
+### 4.2 同类关联点检测
+
+当前阶段多轮更新时，必须扫描当前阶段产物中的同类关联点。能确定需要同步的当前阶段内容，必须同步修改。不确定的同类点，先问 PM。如果下游产物已存在且当前修改会影响下游，提示使用 /pm-fix 统一同步。
+
 ## 5. 输出生成
 
 ### 5.1 人读产物
@@ -116,6 +132,8 @@ tags: [pmflow, align, requirement]
 
 - `current_stage: align`
 - `artifacts.align` 追加新文件路径
+- `stage_revisions.align.artifact_revision` 刷新为当前 ISO 时间
+- `stage_revisions.align.metadata_revision` 刷新为当前 ISO 时间
 
 ## 6. 输出格式
 

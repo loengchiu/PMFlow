@@ -15,6 +15,7 @@
 3. 再检查对应 self_check 或 reviewer_check 是否存在。
 4. 再检查 verdict。
 5. 再检查 `reviewed_artifact`、`reviewed_metadata` 是否绑定最新产物。
+6. 再检查 `reviewed_artifact_revision`、`reviewed_metadata_revision` 是否等于 `stage_revisions` 中当前阶段最新 revision。路径一致但 revision 不一致时，视为"产物已更新但尚未重新 review"，不得放行。
 
 ## 3. writer 门禁
 
@@ -34,6 +35,12 @@ reviewer 进入前必须确认：
 - 上游最新有效 check 未失效
 
 reviewer 只审查当前阶段是否可进入下一阶段，不替 writer 修改产物。
+
+## 4.1 轻量 metadata 门禁
+
+- review 不检查 metadata 是否复述正文。
+- review 检查 metadata 是否能追溯、定位、覆盖和绑定 revision。
+- metadata 轻量化违规可作为 fail：例如 metadata 大段复制正文、出现禁止字段、缺少关键对象索引。
 
 ## 5. PM ownership gate
 

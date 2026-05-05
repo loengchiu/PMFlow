@@ -29,12 +29,17 @@ human_output_requirements:
   - 冲突和风险
 
 # 机读 metadata 要求
+# metadata 只保留轻量索引，完整业务方向在人读 align.md
 machine_output_requirements:
   goals: []
     # - id: GOAL-001
-    #   name: 目标名称
+    #   name: 目标名称（不超过 40 字）
+    #   short_statement: 目标短句（不超过 80 字）
     #   category: 效率 | 合规 | 体验 | 数据 | 流程闭环 | 管理可视化
-    #   description: 目标描述
+    #   anchors: []
+    #   source_refs: []
+    #   relations: []
+    #   status: active | deprecated
   build_type: ""  # new_build | iteration | hybrid
   build_type_evidence: ""
   scope:
@@ -43,26 +48,46 @@ machine_output_requirements:
     pending: []
   roles: []
     # - id: ROLE-001
-    #   name: 角色名称
-    #   description: 角色描述
+    #   name: 角色名称（不超过 40 字）
+    #   short_statement: 角色短句（不超过 80 字）
+    #   anchors: []
+    #   source_refs: []
+    #   relations: []
+    #   status: active | deprecated
   scenarios: []
     # - id: SCENE-001
-    #   name: 场景名称
+    #   name: 场景名称（不超过 40 字）
+    #   short_statement: 场景短句（不超过 80 字）
     #   role: ROLE-001
-    #   task: 任务描述
-    #   context: 场景上下文
+    #   anchors: []
+    #   source_refs: []
+    #   relations: []
+    #   status: active | deprecated
   user_paths: []
     # - id: PATH-001
+    #   name: 路径名称（不超过 40 字）
+    #   short_statement: 路径短句（不超过 80 字）
     #   role: ROLE-001
     #   scenario: SCENE-001
-    #   steps: []
-  business_direction: ""
+    #   anchors: []
+    #   source_refs: []
+    #   relations: []
+  business_direction_statement: ""  # 短 statement，不超过 80 字；完整表达在人读 align.md
   confirmed_items: []
   open_questions: []
     # - id: OQ-001
-    #   question: 问题描述
+    #   question: 问题短句（不超过 80 字）
     #   status: open | resolved | deferred
+    #   anchors: []
+    #   source_refs: []
   risks: []
+    # - id: RISK-001
+    #   name: 风险名称（不超过 40 字）
+    #   short_statement: 风险短句（不超过 80 字）
+    #   anchors: []
+    #   source_refs: []
+    #   relations: []
+    #   status: active | resolved
   source_materials: []
     # 关联到 input 阶段的材料 ID
 
@@ -90,3 +115,18 @@ review_checklist:
     - 关键角色和主场景完整
     - 业务方向合理且未越界到详细设计
     - 多轮新增、覆盖、冲突和已关闭问题处理干净
+
+# 多轮同步规则
+multi_round_sync:
+  - 阶段命令支持多轮更新
+  - 当前阶段循环中的补充回答由当前阶段命令吸收
+  - 人读产物与 metadata 必须一致
+  - reviewer 发现不一致必须 fail
+
+# 事实基线说明
+baseline_rule:
+  - align 是进入 design 的第一个需求事实基线
+  - align 负责吸收 input 的缺口、冲突、PM 补充、需求方确认和多轮澄清
+  - align-review 不要求反向修补 input
+  - 已被 align 覆盖、修正、否定的 input 旧口径，不得作为 warning 或 fail
+  - source_materials 只表示来源追溯，不表示 input 内容仍是事实基线

@@ -28,27 +28,30 @@ human_output_requirements:
   - 是否可以进入 /pm-align
 
 # 机读 metadata 要求
+# metadata 只保留轻量索引，完整材料内容在人读 input.md
 machine_output_requirements:
   materials: []
     # - id: MAT-001
-    #   name: 材料名称
+    #   name: 材料名称（不超过 40 字）
     #   source: 需求方确认 | PM 假设 | 旧系统现状 | 历史文档 | 参考材料
     #   type: 原话 | 字段表 | 流程图 | 截图 | 会议纪要 | 旧系统资料 | 制度文件
     #   constraint: 强约束 | 参考约束 | 待确认 | 范围外
-    #   content_summary: 内容摘要
-  requirement_summary: ""
+    #   short_statement: 材料短句（不超过 80 字）
+    #   source_refs: []
+    #   anchors: []
+  requirement_summary: ""  # 短 statement，不超过 80 字
   build_type_guess: ""  # new_build | iteration | hybrid | 待确认
   gaps: []
     # - id: GAP-001
-    #   description: 缺口描述
+    #   short_statement: 缺口短句（不超过 80 字）
     #   related_materials: []
-    #   question_to_ask: 可问需求方的问题
+    #   question_to_ask: 可问需求方的问题短句（不超过 80 字）
     #   supplement_mode: 会话补充 | 补充文件 | 需求方确认后补充
     #   suggested_file: 建议补充文件名，可为空
     #   suggested_format: 建议补充格式，可为空
   conflicts: []
     # - id: CONFLICT-001
-    #   description: 冲突描述
+    #   short_statement: 冲突短句（不超过 80 字）
     #   materials_involved: []
   extracted_clues:
     goals: []
@@ -73,3 +76,10 @@ self_check:
     - 关键材料标记来源和约束强度
     - 缺口和冲突已识别
     - 需求一句话摘要清楚
+
+# 事实基线说明
+baseline_rule:
+  - input 是材料盘点和来源索引，不是需求事实基线
+  - input 不作为后续 design/prd/prototype 的需求事实基线
+  - input 中的缺口、冲突、线索必须在 align 阶段吸收、澄清或关闭
+  - input 与 align 冲突时，以 align 为准

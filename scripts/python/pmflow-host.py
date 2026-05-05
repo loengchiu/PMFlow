@@ -13,6 +13,9 @@ START_MARKER = '<!-- PMFLOW GLOBAL RULES START -->'
 END_MARKER = '<!-- PMFLOW GLOBAL RULES END -->'
 BUNDLE_NAME = 'pmflow'
 HOSTS = ('claude-code', 'trae-cn')
+AGENT_NAMES = (
+    'pmflow-reviewer',
+)
 SKILL_NAMES = (
     'pm-guide',
     'pm-input',
@@ -263,15 +266,51 @@ def remove_global_rules(host: str) -> None:
     raise ValueError(host)
 
 
+# ── agent 映射（仅 Claude Code） ─────────────────────────────
+
+def write_agent_mappings(host: str) -> None:
+    if host != 'claude-code':
+        return
+    agents_root = host_base(host) / 'agents'
+    ensure_dir(agents_root)
+    for agent_name in AGENT_NAMES:
+        src = REPO_ROOT / 'agents' / f'{agent_name}.md'
+        dst = agents_root / f'{agent_name}.md'
+        content = read_text(src)
+        write_text(dst, content)
+
+
+def verify_agent_mappings(host: str) -> None:
+    if host != 'claude-code':
+        return
+    agents_root = host_base(host) / 'agents'
+    for agent_name in AGENT_NAMES:
+        path = agents_root / f'{agent_name}.md'
+        if not path.exists():
+            raise RuntimeError(f'agent mapping missing: {path}')
+
+
+def remove_agent_mappings(host: str) -> None:
+    if host != 'claude-code':
+        return
+    agents_root = host_base(host) / 'agents'
+    for agent_name in AGENT_NAMES:
+        path = agents_root / f'{agent_name}.md'
+        if path.exists():
+            path.unlink()
+
+
 # ── 命令 ─────────────────────────────────────────────────────
 
 def cmd_install(host: str) -> None:
     write_bundle_mapping(host)
     write_skill_mappings(host)
     write_global_rules(host)
+    write_agent_mappings(host)
     verify_bundle_mapping(host)
     verify_skill_mappings(host)
     verify_global_rules(host)
+    verify_agent_mappings(host)
     print('pmflow-install:ok')
 
 
@@ -279,12 +318,14 @@ def cmd_verify(host: str) -> None:
     verify_bundle_mapping(host)
     verify_skill_mappings(host)
     verify_global_rules(host)
+    verify_agent_mappings(host)
     print('pmflow-verify:ok')
 
 
 def cmd_remove(host: str) -> None:
     remove_global_rules(host)
     remove_skill_mappings(host)
+    remove_agent_mappings(host)
     remove_bundle_mapping(host)
     print('pmflow-remove:ok')
 

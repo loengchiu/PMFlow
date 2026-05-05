@@ -70,6 +70,42 @@ fields:
           type: string
           format: iso8601
 
+  stage_revisions:
+    type: object
+    required: false
+    description: 各阶段当前 revision，writer 每次生成或多轮更新时刷新
+    properties:
+      input:
+        type: object
+        properties:
+          artifact_revision: { type: string }
+          metadata_revision: { type: string }
+      align:
+        type: object
+        properties:
+          artifact_revision: { type: string }
+          metadata_revision: { type: string }
+      design:
+        type: object
+        properties:
+          artifact_revision: { type: string }
+          metadata_revision: { type: string }
+      wireframe:
+        type: object
+        properties:
+          artifact_revision: { type: string }
+          metadata_revision: { type: string }
+      prd:
+        type: object
+        properties:
+          artifact_revision: { type: string }
+          metadata_revision: { type: string }
+      prototype:
+        type: object
+        properties:
+          artifact_revision: { type: string }
+          metadata_revision: { type: string }
+
   review_results:
     type: array
     required: true
@@ -82,6 +118,8 @@ fields:
         - checked_at
         - reviewed_artifact
         - reviewed_metadata
+        - reviewed_artifact_revision
+        - reviewed_metadata_revision
       properties:
         stage:
           type: enum
@@ -109,6 +147,12 @@ fields:
         reviewed_metadata:
           type: string
           description: 被审查的 metadata 入口路径
+        reviewed_artifact_revision:
+          type: string
+          description: 被审查时绑定的人读产物 revision
+        reviewed_metadata_revision:
+          type: string
+          description: 被审查时绑定的 metadata revision
 
   fix_debts:
     type: array

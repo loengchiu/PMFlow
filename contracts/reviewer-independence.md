@@ -12,10 +12,16 @@
 
 ## 宿主能力分级
 
-- Claude Code：推荐使用独立 subagent 或新会话执行 reviewer。
+- Claude Code：优先使用 `pmflow-reviewer` subagent 执行审查。如果 subagent 不可用，必须说明原因，再按独立审查模式执行。
 - Codex：可使用 subagent / dedicated reviewer，但不作为 PMFlow 主流程依赖。
 - Trae-CN：默认使用独立审查模式。
 - 其他宿主：默认使用独立审查模式。
+
+## Claude Code subagent 路径
+
+- `pmflow-reviewer` subagent 负责独立读取和审查，返回结构化结果（`PMFLOW-REVIEW-RESULT`）。
+- 主会话负责根据 subagent 结果写入 review 文件，并追加 `status.review_results`。
+- subagent 默认不直接写文件。
 
 ## 独立审查模式要求
 

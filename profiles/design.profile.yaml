@@ -27,6 +27,7 @@ human_output_requirements:
   - 待确认问题
 
 # 机读 metadata 要求（分片存储）
+# metadata 只索引页面/字段/规则/流程，完整说明在 design.md
 machine_output_requirements:
   # 索引文件：.pmflow/metadata/design/index.yaml
   index:
@@ -39,43 +40,52 @@ machine_output_requirements:
   # 分片文件：.pmflow/metadata/design/<type>/
   modules: []
     # - id: MOD-001
-    #   name: 模块名称
-    #   description: 模块职责
+    #   name: 模块名称（不超过 40 字）
     #   derived_from: [GOAL-xxx, SCENE-xxx]
   pages: []
     # - id: PAGE-001
-    #   name: 页面名称
+    #   name: 页面名称（不超过 40 字）
     #   type: list | form | detail | dashboard
     #   module: MOD-001
-    #   derived_from: [PATH-xxx, SCENE-xxx]
+    #   anchors: []
+    #   fields: [FIELD-001, FIELD-002]
+    #   actions: []
+    #   rules: []
+    #   source_refs: []
+    #   status: active | deprecated
   entities: []
     # - id: ENTITY-001
-    #   name: 实体名称
+    #   name: 实体名称（不超过 40 字）
     #   fields: [FIELD-001, FIELD-002]
     #   derived_from: [SCENE-xxx]
   fields: []
     # - id: FIELD-001
-    #   name: 字段名称
-    #   type: string | number | enum | date | boolean | ...
+    #   name: 字段名称（不超过 40 字）
+    #   type/category: string | number | enum | date | boolean | ...
     #   entity: ENTITY-001
-    #   required: true | false
-    #   validation: 校验规则
-    #   derived_from: [SCENE-xxx]
+    #   anchors: []
+    #   used_by: [PAGE-001, PAGE-002]
+    #   source_refs: []
+    #   status: active | deprecated
   flows: []
     # - id: FLOW-001
-    #   name: 流程名称
-    #   steps: []
+    #   name: 流程名称（不超过 40 字）
+    #   anchors: []
+    #   source_refs: []
     #   derived_from: [PATH-xxx]
   states: []
     # - id: STATE-001
-    #   name: 状态名称
+    #   name: 状态名称（不超过 40 字）
     #   entity: ENTITY-001
     #   transitions: []
   rules: []
     # - id: RULE-001
-    #   name: 规则名称
-    #   description: 规则描述
+    #   name: 规则名称（不超过 40 字）
+    #   short_statement: 规则短句（不超过 80 字）
     #   scope: 模块 | 页面 | 字段 | 流程
+    #   anchors: []
+    #   source_refs: []
+    #   relations: []
     #   derived_from: [SCENE-xxx]
   permissions: []
     # - id: PERM-001
@@ -123,3 +133,17 @@ review_checklist:
     - relations 完整且一致
     - 人读产物无机读字段泄漏
     - metadata 分片符合行数限制
+
+# 多轮同步规则
+multi_round_sync:
+  - 阶段命令支持多轮更新
+  - 当前阶段循环中的补充回答由当前阶段命令吸收
+  - 人读产物与 metadata 必须一致
+  - reviewer 发现不一致必须 fail
+
+# 事实基线说明
+baseline_rule:
+  - design 是详细设计事实基线
+  - design review 通过后，design 成为 wireframe / PRD / prototype 的主要事实来源
+  - design 可以在职责范围内细化、补充和修正上游内容
+  - 只有改变上游核心目标、范围、建设类型、一期/二期边界或主流程方向时，才必须回到对应上游阶段

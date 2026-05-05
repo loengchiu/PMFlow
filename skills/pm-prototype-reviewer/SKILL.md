@@ -9,12 +9,21 @@ tags: [pmflow, prototype, review, new_main]
 
 按独立审查模式执行。不依赖 writer 会话结论，重新读取 status / artifact / metadata / profile 后再审查。
 
+## 0. 执行方式
+
+- Claude Code 环境下，如果 `pmflow-reviewer` subagent 可用，必须使用 `pmflow-reviewer` 执行审查，主会话不得直接做内容审查。
+- 主会话负责把本 SOP、当前阶段、项目路径传给 subagent，并接收 `PMFLOW-REVIEW-RESULT`。
+- 主会话根据 subagent 结果写入 review 文件，并追加 `.pmflow/status.yaml` 的 `review_results`。
+- 如果 Claude Code 环境下 `pmflow-reviewer` 不可用，必须在输出中说明原因，再按独立审查模式执行。
+- 非 Claude Code 环境按 `contracts/reviewer-independence.md` 的独立审查模式执行。
+
 ## 1. 前置读取
 
 - `contracts/reviewer-independence.md`（独立审查契约）
 - `contracts/new-main-chain.md`（新主链硬约束）
 - `contracts/gates.md`（门禁定义）
 - `contracts/human-sync.md`（人机同步契约）
+- `contracts/lightweight-metadata.md`（轻量 metadata 契约）
 - `schemas/status.schema.yaml`（状态 schema）
 - `profiles/prototype-review-new-main.profile.yaml`（审查契约）
 - `profiles/prototype-new-main.profile.yaml`（writer 产物契约，对照检查）
@@ -107,6 +116,9 @@ tags: [pmflow, prototype, review, new_main]
 - 未新增 PRD 未定义的业务内容 → pass
 - 有轻微扩展但不影响评审 → warn
 - 新增未确认业务流程 → fail
+- **阶段递进基线**：prototype 可以把 PRD/wireframe 转成高保真交互表达，不要求与上游逐字一致
+- 不得违背上游核心目标、范围、建设类型、一期/二期边界和主流程方向
+- prototype review 通过后，prototype 作为高保真交互表达基线
 
 ### 3.9 人机分离
 
@@ -117,6 +129,10 @@ tags: [pmflow, prototype, review, new_main]
 - 稳定 ID（FIELD-*、PAGE-*、RULE-*、REQ-*）
 
 发现任一 → fail。
+
+### 3.10 一致性检查
+
+- 人读产物与 metadata 不一致 → fail（必须回到 /pm-prototype 修正，不得建议 /pm-fix）
 
 ## 4. 判定输出
 
@@ -163,6 +179,8 @@ checks_detail:
 fail_reasons: []
 warnings: []
 checked_at: ""
+reviewed_artifact_revision: ""
+reviewed_metadata_revision: ""
 reviewer: pm-prototype-reviewer
 ```
 

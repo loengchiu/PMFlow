@@ -52,6 +52,7 @@ optional_sections:
   - 附录
 
 # 机读 metadata 要求
+# metadata 只记录字段落点、动作落点、规则引用、anchors、source_refs，不复述页面正文
 machine_output_requirements:
   index:
     source_design_artifact: ""
@@ -64,24 +65,24 @@ machine_output_requirements:
 
   dictionary: []
     # - id: PRD-FIELD-001
-    #   name: 字段名
+    #   name: 字段名（不超过 40 字）
     #   type: string | integer | decimal | boolean | date | datetime
     #   required: true | false
     #   enum_values: []
     #   default: ""
     #   format: ""
-    #   min: 0
-    #   max: 100
-    #   description: ""
-    #   source: ""
+    #   anchors: []
+    #   source_refs: []
 
   pages: []
     # - id: PRD-PAGE-001
-    #   name: 页面名称
+    #   name: 页面名称（不超过 40 字）
     #   page_code: P-01
     #   module: 模块名
     #   design_page_ref: PAGE-001
     #   wireframe_page_ref: WF-PAGE-001
+    #   anchors: []
+    #   source_refs: []
     #   regions: []
     #     # - name: 区域名
     #     #   fields: []
@@ -90,7 +91,7 @@ machine_output_requirements:
     #     #     #   usage: 展示 | 筛选 | 编辑 | 只读 | 校验 | 状态判断 | 权限判断 | 计算 | 导入 | 导出 | 验收依据
     #   actions: []
     #     # - id: PRD-ACT-001
-    #     #   name: 动作名
+    #     #   name: 动作名（不超过 40 字）
     #     #   fields: []
     #     #     # - field_id: PRD-FIELD-001
     #     #     #   field_name: 字段名
@@ -100,12 +101,14 @@ machine_output_requirements:
 
   rules: []
     # - id: PRD-RULE-001
-    #   name: 规则名称
+    #   name: 规则名称（不超过 40 字）
+    #   short_statement: 规则短句（不超过 80 字）
     #   type: business | validation | permission | acceptance
     #   field_refs: []
     #   page_refs: []
     #   action_refs: []
-    #   description: ""
+    #   anchors: []
+    #   source_refs: []
 
   trace: []
     # - prd_section: "六、详细需求说明 / P-02 入库申请页 / 新增入库"
@@ -151,6 +154,13 @@ review_checklist:
     - 来源追溯：PRD 内容能追溯到 design 或 wireframe
     - 人机分离：人读 PRD 干净
 
+# 多轮同步规则
+multi_round_sync:
+  - 阶段命令支持多轮更新
+  - 当前阶段循环中的补充回答由当前阶段命令吸收
+  - 人读产物与 metadata 必须一致
+  - reviewer 发现不一致必须 fail
+
 # review 输出必填字段
 review_required_fields:
   - stage
@@ -163,3 +173,10 @@ review_required_fields:
   - warnings
   - checks_detail
   - reviewer
+
+# 事实基线说明
+baseline_rule:
+  - PRD 是研发评审与归档基线
+  - PRD review 通过后，PRD 成为 prototype 的正式需求说明来源之一
+  - PRD 可以把 design/wireframe 细化为研发可评审的自然语言需求
+  - 只有改变上游核心目标、范围、建设类型、一期/二期边界或主流程方向时，才必须回到对应上游阶段

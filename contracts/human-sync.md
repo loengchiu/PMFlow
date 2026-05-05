@@ -8,6 +8,7 @@ PM 可以直接修改人读主稿。任何人读物被修改后，下一次进�
 人读物用自然名称，机读物用稳定 ID。
 ID 不暴露给需求方和评审会读者。
 metadata 分片与 trace 负责追溯、防幻觉和同步修改。
+人读物是事实主体，metadata 是外部轻量索引。
 ```
 
 ## 2. 人读物编号规则
@@ -48,7 +49,21 @@ version: 2
 change_event: CHANGE-20260503-001
 ```
 
-## 5. /pm-fix 同步职责
+## 5. 阶段 writer 多轮同步职责
+
+阶段 writer 包括 /pm-align、/pm-design、/pm-wireframe、/pm-prd、/pm-prototype。
+
+当用户再次执行当前阶段命令并提供补充、修正、撤销、确认时，writer 必须：
+
+- 先读取当前阶段已有的人读产物、metadata 和 snapshot。
+- 判断用户输入影响的业务对象、字段、页面、流程、规则或原型交互。
+- 同步更新当前阶段人读产物、metadata、snapshot 和 `.pmflow/status.yaml` 中 artifacts 和 snapshot_records。
+- 不允许只更新人读物，不更新 metadata。
+- 不允许只更新 metadata，不更新人读物。
+- 无法判断影响对象时，必须停止询问 PM，不得猜。
+- 同步完成后才允许输出下一步 review 命令。
+
+## 6. /pm-fix 同步职责
 
 `/pm-fix` 负责：
 
@@ -59,7 +74,7 @@ change_event: CHANGE-20260503-001
 
 如果无法判断人读改动对应哪个机读锚点，**必须停止询问 PM，不能猜**。
 
-## 6. 同步完成标志
+## 7. 同步完成标志
 
 人机同步完成的标志：
 
@@ -67,7 +82,18 @@ change_event: CHANGE-20260503-001
 - 快照已更新（`snapshot_records` 中对应 stage 的 `synced_at` 已刷新）。
 - 受影响的 metadata 分片与 trace 已更新。
 
-## 7. 快照更新权限
+## 7.1 轻量 metadata 同步
+
+- metadata 同步指同步索引、relations、anchors、source_refs、revision、coverage，不是同步正文副本。
+- 人读物和 metadata 不一致的定义：
+  - 人读物中存在关键对象但 metadata 无索引。
+  - metadata 中对象在人读物中已删除或失效。
+  - relations/source_refs 指向不存在或错误对象。
+  - metadata 状态与人读物事实冲突。
+  - revision 未更新。
+- metadata 不需要也不得复述完整人读正文。
+
+## 8. 快照更新权限
 
 只有以下角色可以在同步完成时更新 snapshot：
 
@@ -77,7 +103,21 @@ change_event: CHANGE-20260503-001
 
 **阶段 reviewer 不更新 snapshot**。阶段 reviewer 只写 `.pmflow/reviews/*.yaml` 和 `status.review_results`。/pm-fix-review 不属于阶段 reviewer，可按收口规则更新 snapshot。
 
-## 8. 禁止行为
+## 9. 同类关联点检测
+
+用户提出任一修改点时，writer 或 /pm-fix 必须检查同类关联点。
+
+同类关联点包括：
+
+- 同一业务对象在多个章节的描述
+- 同一字段在数据字典、页面说明、规则、验收中的出现
+- 同一操作在列表页、详情页、流程图、PRD、原型中的出现
+- 同一状态/枚举/权限规则在多个模块中的出现
+- 同一交互模式在多个页面中的出现
+
+不得只修改用户点名的一处，而不检查其他同类位置。能确定属于同一业务规则的，列出影响范围并同步修改。不能确定是否应同步的，必须向 PM 提问。不得静默保留明显冲突的旧口径。
+
+## 10. 禁止行为
 
 - PM 插入一个页面后，要求 PM 手工重排所有页面编号。
 - 页面排序变化导致所有 `PAGE-*` ID 重建。

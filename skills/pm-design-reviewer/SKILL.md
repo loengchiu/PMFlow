@@ -9,11 +9,20 @@ tags: [pmflow, design, review]
 
 按独立审查模式执行。不依赖 writer 会话结论，重新读取 status / artifact / metadata / profile 后再审查。
 
+## 0. 执行方式
+
+- Claude Code 环境下，如果 `pmflow-reviewer` subagent 可用，必须使用 `pmflow-reviewer` 执行审查，主会话不得直接做内容审查。
+- 主会话负责把本 SOP、当前阶段、项目路径传给 subagent，并接收 `PMFLOW-REVIEW-RESULT`。
+- 主会话根据 subagent 结果写入 review 文件，并追加 `.pmflow/status.yaml` 的 `review_results`。
+- 如果 Claude Code 环境下 `pmflow-reviewer` 不可用，必须在输出中说明原因，再按独立审查模式执行。
+- 非 Claude Code 环境按 `contracts/reviewer-independence.md` 的独立审查模式执行。
+
 ## 1. 前置读取
 
 - `contracts/reviewer-independence.md`（独立审查契约）
 - `contracts/gates.md`（门禁定义，重点 reviewer 门禁）
 - `contracts/human-sync.md`（人机同步契约）
+- `contracts/lightweight-metadata.md`（轻量 metadata 契约）
 - `schemas/status.schema.yaml`（状态 schema）
 - `profiles/design.profile.yaml`（design 产物契约，重点 review_checklist）
 - 最新 design 产物（`output/design/` 下最新文件）
@@ -43,6 +52,9 @@ tags: [pmflow, design, review]
 - design 是否基于已通过 align-review 的基线
 - 是否有越界扩展（超出 align 范围）
 - 是否有悄悄并入的新材料
+- **阶段递进基线**：design 可以在职责范围内细化、补充和修正上游内容，不要求与 align 逐字一致
+- 不得违背上游核心目标、范围、建设类型、一期/二期边界和主流程方向
+- design review 通过后，design 成为 wireframe / PRD / prototype 的详细设计事实基线
 
 ### 3.2 结构完整性检查
 
@@ -80,9 +92,11 @@ warnings: []
 checked_at: ""
 reviewed_artifact: ""
 reviewed_metadata: ""
+reviewed_artifact_revision: ""
+reviewed_metadata_revision: ""
 ```
 
-`reviewed_artifact` 和 `reviewed_metadata` 为必填字段。
+`reviewed_artifact` 和 `reviewed_metadata` 为必填字段。`reviewed_artifact_revision` 和 `reviewed_metadata_revision` 必须等于 `stage_revisions.design` 中最新 revision。如果无法读取当前 revision，fail。
 
 ### 4.2 判定标准
 
@@ -95,6 +109,7 @@ reviewed_metadata: ""
 - 前置冲突未暴露继续生成
 - 关键对象缺少稳定 ID
 - relations 断裂或指向不存在的对象
+- 人读产物与 metadata 不一致（必须回到 /pm-design 修正，不得建议 /pm-fix）
 
 **warn**：
 
