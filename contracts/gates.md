@@ -36,6 +36,8 @@ reviewer 进入前必须确认：
 
 reviewer 只审查当前阶段是否可进入下一阶段，不替 writer 修改产物。
 
+reviewer 发现仅 metadata 不一致时，不得要求 PM 手工修改机读文件，应建议回到当前阶段 writer 进入 metadata repair mode。
+
 ## 4.1 轻量 metadata 门禁
 
 - review 不检查 metadata 是否复述正文。

@@ -117,10 +117,24 @@ change_event: CHANGE-20260503-001
 
 不得只修改用户点名的一处，而不检查其他同类位置。能确定属于同一业务规则的，列出影响范围并同步修改。不能确定是否应同步的，必须向 PM 提问。不得静默保留明显冲突的旧口径。
 
-## 10. 禁止行为
+## 10. metadata repair mode
+
+当 reviewer 发现仅 metadata / index / relation / source_refs / revision 不一致时：
+
+- 不得要求 PM 手工修改机读文件。
+- 应建议回到当前阶段 writer。
+- 当前阶段 writer 必须进入 metadata repair mode：
+  - 读取 review 结果
+  - 自动修复 metadata
+  - 不必要时不修改人读产物
+  - 只刷新 metadata_revision
+  - 完成后要求重新 review
+
+## 11. 禁止行为
 
 - PM 插入一个页面后，要求 PM 手工重排所有页面编号。
 - 页面排序变化导致所有 `PAGE-*` ID 重建。
 - 人读物新增字段，但 metadata 中没有对应字段记录。
 - 人读物删除页面，但 metadata 仍把该页面作为有效对象。
 - 人读物和机读物不一致时仍允许进入下一阶段 writer/reviewer。
+- reviewer 要求 PM 手工修改 metadata 文件。

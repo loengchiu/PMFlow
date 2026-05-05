@@ -11,11 +11,11 @@ tags: [pmflow, prototype, review, new_main]
 
 ## 0. 执行方式
 
-- Claude Code 环境下，如果 `pmflow-reviewer` subagent 可用，必须使用 `pmflow-reviewer` 执行审查，主会话不得直接做内容审查。
-- 主会话负责把本 SOP、当前阶段、项目路径传给 subagent，并接收 `PMFLOW-REVIEW-RESULT`。
-- 主会话根据 subagent 结果写入 review 文件，并追加 `.pmflow/status.yaml` 的 `review_results`。
-- 如果 Claude Code 环境下 `pmflow-reviewer` 不可用，必须在输出中说明原因，再按独立审查模式执行。
-- 非 Claude Code 环境按 `contracts/reviewer-independence.md` 的独立审查模式执行。
+- 优先使用可直接调用的 `pmflow-reviewer` subagent；文件存在不等于可调用。
+- 若不能直接调用 `pmflow-reviewer`，但可调用 `general-purpose`，必须把 `agents/pmflow-reviewer.md` 全文、本 SOP、阶段名、项目路径传给 `general-purpose`。
+- `general-purpose` 只是承载器，review 结果必须记录 `reviewer_agent_type`、`reviewer_prompt_source`、`reviewer_mode`。
+- 如果没有可用 subagent，说明原因，再按 `contracts/reviewer-independence.md` 的独立审查模式执行。
+- 主会话只接收 `PMFLOW-REVIEW-RESULT`、写 review 文件并追加 `.pmflow/status.yaml`。
 
 ## 1. 前置读取
 
@@ -133,6 +133,7 @@ tags: [pmflow, prototype, review, new_main]
 ### 3.10 一致性检查
 
 - 人读产物与 metadata 不一致 → fail（必须回到 /pm-prototype 修正，不得建议 /pm-fix）
+- 仅 metadata 不一致时，建议回到 /pm-prototype 进入 metadata repair mode，不得要求 PM 手工修改机读文件
 
 ## 4. 判定输出
 
@@ -182,6 +183,9 @@ checked_at: ""
 reviewed_artifact_revision: ""
 reviewed_metadata_revision: ""
 reviewer: pm-prototype-reviewer
+reviewer_agent_type: pmflow-reviewer | general-purpose | none
+reviewer_prompt_source: agent_type | agents/pmflow-reviewer.md | contracts/reviewer-independence.md
+reviewer_mode: pmflow-reviewer | pmflow-reviewer-prompt | independent-current-session
 ```
 
 ## 5. 更新状态

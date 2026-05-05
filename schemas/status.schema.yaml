@@ -153,6 +153,18 @@ fields:
         reviewed_metadata_revision:
           type: string
           description: 被审查时绑定的 metadata revision
+        reviewer_agent_type:
+          type: enum
+          values: [pmflow-reviewer, general-purpose, none]
+          description: reviewer_check 的实际执行 agent 类型
+        reviewer_prompt_source:
+          type: enum
+          values: [agent_type, agents/pmflow-reviewer.md, contracts/reviewer-independence.md]
+          description: reviewer_check 使用的 reviewer 规则来源
+        reviewer_mode:
+          type: enum
+          values: [pmflow-reviewer, pmflow-reviewer-prompt, independent-current-session]
+          description: reviewer_check 的执行模式
 
   fix_debts:
     type: array

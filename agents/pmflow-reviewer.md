@@ -45,6 +45,10 @@ model: inherit
 - 已被当前阶段覆盖的上游旧口径不得作为 warning。
 - review 输出必须包含 `reviewed_artifact_revision` 和 `reviewed_metadata_revision`，值必须等于 status 中当前阶段最新 revision。如果无法读取当前 revision，fail。
 - align-review 时 input 只作来源索引，input 旧口径被 align 覆盖后不得作为 warning/fail。进入 design 的事实基线是 align。
+- **metadata repair mode**：
+  - 当 reviewer 发现仅 metadata / index / relation / source_refs / revision 不一致时，不得要求 PM 手工修改机读文件。
+  - 应建议回到当前阶段 writer 进入 metadata repair mode。
+  - 当前阶段 writer 必须进入 metadata repair mode：读取 review 结果、自动修复 metadata、不必要时不修改人读产物、只刷新 metadata_revision、完成后要求重新 review。
 - **阶段递进基线规则**：
   - input 是来源索引，不是事实基线。
   - align 是第一个需求事实基线。
@@ -76,6 +80,9 @@ stage: align|design|wireframe|prd|prototype|fix
 verdict: pass|warn|fail
 reviewed_artifact: ""
 reviewed_metadata: ""
+reviewer_agent_type: pmflow-reviewer | general-purpose | none
+reviewer_prompt_source: agent_type | agents/pmflow-reviewer.md | contracts/reviewer-independence.md
+reviewer_mode: pmflow-reviewer | pmflow-reviewer-prompt | independent-current-session
 blocking_issues: []
 warnings: []
 required_actions: []

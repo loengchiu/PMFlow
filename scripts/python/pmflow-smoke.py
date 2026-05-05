@@ -186,8 +186,12 @@ def check_reviewer_independence() -> None:
            f'{name}/SKILL.md 缺少"独立审查"关键词')
         ok('pmflow-reviewer' in text,
            f'{name}/SKILL.md 未引用 pmflow-reviewer')
-        ok('Claude Code' in text,
-           f'{name}/SKILL.md 未提及 Claude Code')
+        ok('文件存在不等于可调用' in text,
+           f'{name}/SKILL.md 未区分 agent 文件存在和可调用')
+        ok('general-purpose' in text,
+           f'{name}/SKILL.md 缺少 general-purpose fallback')
+        ok('reviewer_agent_type' in text and 'reviewer_prompt_source' in text and 'reviewer_mode' in text,
+           f'{name}/SKILL.md 缺少 reviewer 执行方式记录字段')
         ok('PMFLOW-REVIEW-RESULT' in text,
            f'{name}/SKILL.md 未提及 PMFLOW-REVIEW-RESULT')
         ok('人读产物与 metadata 不一致' in text,
@@ -207,6 +211,13 @@ def check_agent_definition() -> None:
            'agents/pmflow-reviewer.md 缺少 next_stage_notes')
         ok('warnings 只放业务风险' in text,
            'agents/pmflow-reviewer.md 缺少 warnings 业务风险规则')
+        ok('reviewer_agent_type' in text and 'reviewer_prompt_source' in text and 'reviewer_mode' in text,
+           'agents/pmflow-reviewer.md 缺少 reviewer 执行方式字段')
+    contract_text = read(ROOT / 'contracts' / 'reviewer-independence.md')
+    ok('文件存在，只能证明 agent 定义已安装' in contract_text,
+       'contracts/reviewer-independence.md 未说明 agent 文件存在不等于可调用')
+    ok('general-purpose' in contract_text and '承载器' in contract_text,
+       'contracts/reviewer-independence.md 未定义 general-purpose 承载模式')
 
 
 def check_multi_round_sync() -> None:
@@ -357,6 +368,35 @@ def check_multi_round_sync() -> None:
     # 检查 agent 引用 lightweight-metadata.md
     ok('lightweight-metadata.md' in agent_text,
        'agents/pmflow-reviewer.md 未引用 lightweight-metadata.md')
+    # 检查 metadata repair mode
+    ok('metadata repair mode' in agent_text,
+       'agents/pmflow-reviewer.md 缺少 metadata repair mode')
+    human_sync = read(ROOT / 'contracts' / 'human-sync.md')
+    ok('metadata repair mode' in human_sync,
+       'contracts/human-sync.md 缺少 metadata repair mode')
+    gates = read(ROOT / 'contracts' / 'gates.md')
+    ok('metadata repair mode' in gates,
+       'contracts/gates.md 缺少 metadata repair mode')
+    for name in writer_skills:
+        # pm-input 是第一个阶段，没有 reviewer，不需要 metadata repair mode
+        if name == 'pm-input':
+            continue
+        path = ROOT / 'skills' / name / 'SKILL.md'
+        if not path.is_file():
+            continue
+        text = read(path)
+        ok('metadata repair mode' in text,
+           f'{name}/SKILL.md 缺少 metadata repair mode')
+    for name in reviewer_skills:
+        # pm-fix-reviewer 是修改收口，不是阶段 reviewer，不需要 metadata repair mode
+        if name == 'pm-fix-reviewer':
+            continue
+        path = ROOT / 'skills' / name / 'SKILL.md'
+        if not path.is_file():
+            continue
+        text = read(path)
+        ok('metadata repair mode' in text,
+           f'{name}/SKILL.md 缺少 metadata repair mode')
     # 检查 profiles 轻量 metadata 描述
     ok('只索引页面/字段/规则/流程' in design_profile,
        'profiles/design.profile.yaml 缺少只索引页面/字段/规则/流程')

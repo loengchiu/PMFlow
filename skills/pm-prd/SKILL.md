@@ -152,12 +152,6 @@ actions:
           - PRD-RULE-QUANTITY-GT-ZERO
 ```
 
-字段落点关系包括：
-- field_id（引用 dictionary.yaml 中的字段 ID）
-- field_name（字段名）
-- usage（展示/筛选/编辑/只读/校验/状态判断/权限判断/计算/导入/导出/验收依据）
-- rule_refs（关联的规则 ID）
-
 ### 3.6 主流程走通验证
 
 生成完成后，自行验证：
@@ -195,6 +189,16 @@ actions:
 - 不得只更新人读物，不更新 metadata；不得只更新 metadata，不更新人读物。
 - 当前阶段循环里的补充回答，不建议 /pm-fix。
 - 完成后下一步唯一建议仍是 /pm-prd-review。
+
+### 5.0.1 metadata repair mode
+
+当 reviewer 发现仅 metadata 不一致时，writer 必须进入 metadata repair mode：
+
+- 读取 review 结果
+- 自动修复 metadata
+- 不必要时不修改人读产物
+- 只刷新 metadata_revision
+- 完成后要求重新 review
 
 ### 5.1 同类关联点检测
 

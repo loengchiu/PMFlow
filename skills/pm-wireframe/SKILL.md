@@ -103,6 +103,16 @@ tags: [pmflow, wireframe, detail]
 - 当前阶段循环里的补充回答，不建议 /pm-fix。
 - 完成后下一步唯一建议仍是 /pm-wireframe-review。
 
+### 5.0.1 metadata repair mode
+
+当 reviewer 发现仅 metadata 不一致时，writer 必须进入 metadata repair mode：
+
+- 读取 review 结果
+- 自动修复 metadata
+- 不必要时不修改人读产物
+- 只刷新 metadata_revision
+- 完成后要求重新 review
+
 ### 5.1 同类关联点检测
 
 当前阶段多轮更新时，必须扫描当前阶段产物中的同类关联点。能确定需要同步的当前阶段内容，必须同步修改。不确定的同类点，先问 PM。如果下游产物已存在且当前修改会影响下游，提示使用 /pm-fix 统一同步。
