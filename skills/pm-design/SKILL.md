@@ -15,6 +15,7 @@ tags: [pmflow, design, detail]
 - `schemas/status.schema.yaml`（状态 schema）
 - `profiles/align.profile.yaml`（align 产物契约，理解对齐基线）
 - `profiles/design.profile.yaml`（design 产物契约）
+- `templates/design.md`（详细设计稿骨架）
 - `references/writing-principles.md`（通用写法）
 - 最新 align 产物（`output/align/` 下最新文件）
 - 最新 align metadata（`.pmflow/metadata/align/` 下最新文件）
@@ -85,9 +86,13 @@ tags: [pmflow, design, detail]
 
 历史版本记录到 `status.yaml` 的 `artifacts.design` 中。
 
+必须使用 `templates/design.md` 的章节骨架。
+
 写法参考 `references/writing-principles.md`。
 
 禁止出现机读字段、内部路径、机器 ID。
+
+正文不使用 `**字段名**`、`**页面说明**` 这类加粗标签。除 Markdown 标题外，依靠自然段、列表和表格组织内容。
 
 ### 5.2 机读 metadata
 
@@ -146,7 +151,7 @@ tags: [pmflow, design, detail]
 - 不扩大或改变 align 已确认范围
 - 发现前置冲突后继续生成
 - 一次性长文生成超过 2000 行的完整设计
-- 不在产出后提示 /pm-wireframe 或 /pm-confirm（只提示 /pm-design-review）
+- 不在产出后提示 /pm-wireframe（只提示 /pm-design-review）
 
 ## 9. 使用示例
 

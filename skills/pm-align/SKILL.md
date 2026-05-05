@@ -14,6 +14,8 @@ tags: [pmflow, align, requirement]
 - `schemas/status.schema.yaml`（状态 schema）
 - `profiles/input.profile.yaml`（input 产物契约，理解输入结构）
 - `profiles/align.profile.yaml`（align 产物契约）
+- `templates/align.md`（需求对齐稿骨架）
+- `references/writing-principles.md`（通用写法）
 - 最新 input 产物（`output/input/` 下最新文件）
 - 最新 input metadata（`.pmflow/metadata/input/` 下最新文件）
 
@@ -85,9 +87,13 @@ tags: [pmflow, align, requirement]
 
 写入 `output/align/align-{timestamp}.md`。
 
+必须使用 `templates/align.md` 的章节骨架。
+
 写法参考 `references/writing-principles.md`。
 
 禁止出现机读字段、内部路径、机器 ID。禁止越界写详细设计。
+
+正文不使用 `**字段名**`、`**页面说明**` 这类加粗标签。除 Markdown 标题外，依靠自然段、列表和表格组织内容。
 
 ### 5.2 机读 metadata
 

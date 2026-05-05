@@ -130,7 +130,6 @@ align-review 完成。
 审查完成后，将审查记录**追加到** `.pmflow/status.yaml` 的 `review_results` 数组。记录内容与写入 `.pmflow/reviews/` 的独立文件一致。
 
 **不得**修改 `current_stage`（reviewer 不推进阶段）。
-**不得**写入 `pm_confirmations`、`approved_baselines`、`next_allowed_commands`。
 
 ## 9. 使用示例
 

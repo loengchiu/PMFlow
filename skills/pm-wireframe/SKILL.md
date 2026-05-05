@@ -155,8 +155,6 @@ tags: [pmflow, wireframe, detail]
 - 不得执行 reviewer 的自检
 - 不得在产出后提示 /pm-prd 或任何后续阶段命令（只提示 /pm-wireframe-review）
 - 不得跨越 PM ownership gate
-- 不得写 pm_confirmations、approved_baselines、next_allowed_commands
-- 不得提示 /pm-confirm
 
 ## 7. 使用示例
 

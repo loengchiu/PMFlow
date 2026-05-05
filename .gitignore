@@ -1,17 +1,8 @@
 .omc/
 .claude/
-.claude/settings.local.json
 __pycache__/
-
 *.tmp.*
 *.log
 
 .pmflow/
 output/
-
-# 测试夹具例外 — test 目录下的 .pmflow 和 output 必须入库
-!test/**/.pmflow/
-!test/**/output/
-
-# Runtime 测试生成目录 — 不入库
-test/tmp-runtime/

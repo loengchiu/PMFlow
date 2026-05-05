@@ -1,9 +1,0 @@
-stage: solution
-check_type: reviewer_check
-verdict: pass
-fail_reasons: []
-warnings: []
-checked_at: "2026-04-30T10:02:00"
-reviewer: solution-reviewer
-reviewed_artifact: output/solution/solution-note-stale-test.md
-reviewed_metadata: .pmflow/metadata/solution/solution-stale-test.yaml

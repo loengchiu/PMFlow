@@ -205,15 +205,12 @@ PM 不可越权推进。
 - 不得在 pass/warn 时提示 /pm-wireframe 或任何后续阶段命令（只提示 /pm-prd）
 - 不得修改 wireframe 文档或 metadata
 - 不得跨越 PM ownership gate
-- 不得写 pm_confirmations、approved_baselines、next_allowed_commands
-- 不得提示 /pm-confirm
 
 ## 8. 更新状态
 
 审查完成后，将审查记录**追加到** `.pmflow/status.yaml` 的 `review_results` 数组。记录内容与写入 `.pmflow/reviews/` 的独立文件一致。
 
 **不得**修改 `current_stage`（reviewer 不推进阶段）。
-**不得**写入 `pm_confirmations`、`approved_baselines`、`next_allowed_commands`。
 
 ## 9. 使用示例
 

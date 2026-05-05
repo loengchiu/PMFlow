@@ -209,9 +209,7 @@ verdict 为 pass 或 warn 时，主链路完成。
 
 - 输出审查结果后**必须停止**
 - 不修改 `current_stage`
-- 不写 `pm_confirmations`、`approved_baselines`、`next_allowed_commands`
 - 不得自动执行 `/pm-prototype` 或任何后续命令
-- 不得提示 `/pm-confirm`
 
 ## 8. 禁止行为
 
@@ -221,8 +219,6 @@ verdict 为 pass 或 warn 时，主链路完成。
 - 不得修改原型文件或 metadata
 - 不得在 fail 时提示主链路完成或任何后续命令
 - 不得在 pass/warn 时提示 `/pm-prototype`（只提示主链路完成）
-- 不得写 pm_confirmations、approved_baselines、next_allowed_commands
-- 不得提示 `/pm-confirm`
 
 ## 9. 使用示例
 

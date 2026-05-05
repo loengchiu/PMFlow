@@ -198,7 +198,5 @@ fix_debts 已登记（1 条 open）。
 - 不自动进入下一阶段
 - 不跳过需要的阶段 review
 - 不把 PM 的自然语言直接当成已确认 design 事实，必须标记来源和影响范围
-- 不写 pm_confirmations、approved_baselines、next_allowed_commands
-- 不提示 /pm-confirm
 - 不在无法唯一定位修改对象时强行修改
 - 不直接建议阶段 review（由 /pm-fix-review 根据 needs_stage_review 给出）

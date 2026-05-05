@@ -192,8 +192,6 @@ flows:
 - 不得新增 PRD 中不存在的页面、字段、操作、状态、流程
 - 不得实现真实后端接口
 - 不得在产出后提示主链路完成或任何后续阶段命令（只提示 /pm-prototype-review）
-- 不得写 pm_confirmations、approved_baselines、next_allowed_commands
-- 不得提示 /pm-confirm
 
 ## 7. 使用示例
 

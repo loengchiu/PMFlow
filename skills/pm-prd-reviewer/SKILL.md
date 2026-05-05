@@ -189,7 +189,6 @@ reviewer: pm-prd-reviewer
 
 **不得**修改 `current_stage`（reviewer 不推进阶段）。
 **不得**更新产物快照或 `snapshot_records`（快照由 writer 负责）。
-**不得**写入 `pm_confirmations`、`approved_baselines`、`next_allowed_commands`。
 
 ## 6. 输出格式
 
@@ -230,9 +229,7 @@ PRD 审查未通过。
 
 - 输出审查结果后**必须停止**
 - 不修改 `current_stage`
-- 不写 `pm_confirmations`、`approved_baselines`、`next_allowed_commands`
 - 不得自动执行 `/pm-prd` 或 `/pm-prototype`
-- 不得提示 `/pm-confirm`
 
 ## 8. 禁止行为
 
@@ -242,8 +239,6 @@ PRD 审查未通过。
 - 不得修改 PRD 文档或 metadata
 - 不得在 fail 时提示 `/pm-prototype` 或任何后续命令
 - 不得在 pass/warn 时提示 `/pm-prd`（只提示 `/pm-prototype`）
-- 不得写 pm_confirmations、approved_baselines、next_allowed_commands
-- 不得提示 `/pm-confirm`
 - 不得跨越 PM ownership gate
 
 ## 9. 使用示例
